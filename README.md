@@ -28,22 +28,20 @@ cd Assignment_LY/TA_Assignment_Pack
 
 Comprehensive documentation is available in the [`../docs/`](../docs/) folder at the repository root:
 
-- **[REQUIREMENTS.md](../docs/REQUIREMENTS.md)** - Complete requirements analysis with functional/non-functional requirements
-- **[ARCHITECTURE.md](../docs/ARCHITECTURE.md)** - System architecture with 11 detailed diagrams (high-level, sequence, flowcharts, ER diagram, components, deployment, security)
-- **[PROJECT_PLAN.md](../docs/PROJECT_PLAN.md)** - 48-hour development roadmap with phase breakdown
-- **[TODO.md](../docs/TODO.md)** - Granular task breakdown (350+ tasks) with progress tracking
-- **[FRONTEND_STRATEGY.md](../docs/FRONTEND_STRATEGY.md)** - Complete frontend implementation guide with 15+ component specifications
-- **[DOCUMENTATION_SUMMARY.md](../docs/DOCUMENTATION_SUMMARY.md)** - Overview of all documentation
-- **[QUICK_REFERENCE.md](../docs/QUICK_REFERENCE.md)** - Quick navigation guide
+- **[REQUIREMENTS.md](./docs/REQUIREMENTS.md)** - Complete requirements analysis with functional/non-functional requirements
+- **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - System architecture with 11 detailed diagrams (high-level, sequence, flowcharts, ER diagram, components, deployment, security)
+- **[PROJECT_PLAN.md](./docs/PROJECT_PLAN.md)** - 48-hour development roadmap with phase breakdown
+- **[TODO.md](./docs/TODO.md)** - Granular task breakdown (350+ tasks) with progress tracking
+- **[FRONTEND_STRATEGY.md](./docs/FRONTEND_STRATEGY.md)** - Complete frontend implementation guide with 15+ component specifications
+- **[DOCUMENTATION_SUMMARY.md](./docs/DOCUMENTATION_SUMMARY.md)** - Overview of all documentation
+- **[QUICK_REFERENCE.md](./docs/QUICK_REFERENCE.md)** - Quick navigation guide
 
 ### 🖼️ Example Timetables
-Test timetable files are available in [`../docs/examples/`](../docs/examples/) for development and testing.
+Test timetable files are available in [`./TA_Assignment_Pack/examples/`](./TA_Assignment_Pack/examples/) for development and testing.
 
 ---
 
-## 🏗️ Technology Stack
-
-## 🏗️ System Architecture
+## 🏗️ Technology Stack and 🏗️ System Architecture
 
 ### Technology Stack
 
