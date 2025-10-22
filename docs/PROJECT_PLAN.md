@@ -85,7 +85,7 @@
 
 ---
 
-### Phase 2: File Upload & Storage (Hours 12-16)
+### Phase 2: File Upload & Storage 
 
 #### 2.1 File Upload Endpoint
 - [ ] Install Multer
@@ -115,7 +115,7 @@
 
 ---
 
-### Phase 3: Document Processing (Hours 16-24)
+### Phase 3: Document Processing 
 
 #### 3.1 OCR Implementation
 - [ ] Setup Tesseract.js
@@ -151,7 +151,7 @@
 
 ---
 
-### Phase 4: LLM Integration (Hours 24-30)
+### Phase 4: LLM Integration 
 
 #### 4.1 LangChain Setup
 - [ ] Install LangChain
@@ -199,7 +199,7 @@
 
 ---
 
-### Phase 5: API Development (Hours 30-36)
+### Phase 5: API Development 
 
 #### 5.1 Core Endpoints
 - [ ] GET /timetables/:id
@@ -236,7 +236,7 @@
 
 ---
 
-### Phase 6: Testing & Validation (Hours 36-40)
+### Phase 6: Testing & Validation 
 
 #### 6.1 Unit Tests
 - [ ] Test file upload service
@@ -272,7 +272,7 @@
 
 ---
 
-### Phase 7: Frontend Strategy (Hours 40-42)
+### Phase 7: Frontend Strategy 
 
 #### 7.1 Architecture Document
 - [ ] Recommend tech stack
@@ -305,7 +305,7 @@
 
 ---
 
-### Phase 8: Documentation & Polish (Hours 42-46)
+### Phase 8: Documentation & Polish 
 
 #### 8.1 Code Documentation
 - [ ] Add inline code comments
@@ -340,7 +340,7 @@
 
 ---
 
-### Phase 9: Final Submission (Hours 46-48)
+### Phase 9: Final Submission 
 
 #### 9.1 Handover Video
 - [ ] Script key points
