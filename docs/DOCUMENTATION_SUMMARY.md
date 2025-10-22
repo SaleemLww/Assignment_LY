@@ -1,5 +1,8 @@
 # 📋 Project Documentation Summary
 
+> **⚠️ LOCKED DOCUMENT - DO NOT MODIFY**  
+> This documentation summary is finalized. For progress tracking, update only `TODO.md`
+
 ## Document Overview
 
 This submission includes comprehensive documentation for the **Teacher Timetable Extraction System** - an intelligent platform that automatically extracts, parses, and displays teacher timetables from various file formats.

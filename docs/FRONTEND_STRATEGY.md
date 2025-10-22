@@ -1,5 +1,8 @@
 # Frontend Strategy & Implementation Guide
 
+> **⚠️ LOCKED DOCUMENT - DO NOT MODIFY**  
+> This frontend strategy is finalized. For progress tracking, update only `TODO.md`
+
 ## 🎯 Overview
 
 This document outlines the comprehensive frontend strategy for the Teacher Timetable Extraction System. While the assessment requires a working backend prototype, this strategy provides clear guidance for future frontend development.

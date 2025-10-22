@@ -1,0 +1,13 @@
+# Lock documentation files - do not modify these files
+# Only TODO.md should be updated for task tracking
+
+README.md merge=ours
+docs/REQUIREMENTS.md merge=ours
+docs/PROJECT_PLAN.md merge=ours
+docs/ARCHITECTURE.md merge=ours
+docs/FRONTEND_STRATEGY.md merge=ours
+docs/DOCUMENTATION_SUMMARY.md merge=ours
+docs/QUICK_REFERENCE.md merge=ours
+
+# TODO.md is the only editable documentation file for progress tracking
+# docs/TODO.md - can be modified

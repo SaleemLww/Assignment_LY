@@ -1,5 +1,8 @@
 # Teacher Timetable Extraction System - Project Plan
 
+> **⚠️ LOCKED DOCUMENT - DO NOT MODIFY**  
+> This project plan is finalized. For progress tracking, update only `TODO.md`
+
 ## 📅 Timeline: 48 Hours
 
 - Assessment Received: October 22, 2025

@@ -1,5 +1,8 @@
 # System Architecture Diagrams
 
+> **⚠️ LOCKED DOCUMENT - DO NOT MODIFY**  
+> This architecture document is finalized. For progress tracking, update only `TODO.md`
+
 This document contains comprehensive architecture and flow diagrams for the Teacher Timetable Extraction System.
 
 ## 1. High-Level System Architecture

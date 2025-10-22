@@ -1,5 +1,8 @@
 # Teacher Timetable Extraction System
 
+> **⚠️ LOCKED DOCUMENT - DO NOT MODIFY**  
+> This README is finalized. For progress tracking, update only `docs/TODO.md`
+
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Assignment__LY-blue?logo=github)](https://github.com/SaleemLww/Assignment_LY)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?logo=typescript)](https://www.typescriptlang.org/)

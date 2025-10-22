@@ -1,5 +1,8 @@
 # Teacher Timetable Extraction System - Requirements Document
 
+> **⚠️ LOCKED DOCUMENT - DO NOT MODIFY**  
+> This requirements document is finalized. For progress tracking, update only `TODO.md`
+
 ## Project Overview
 An online platform for teachers to upload their weekly class timetables in various formats (images, PDFs, Word documents) and have the system automatically extract, parse, and display the timetable data in a standardized UI.
 

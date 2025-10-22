@@ -1,5 +1,8 @@
 # 🚀 Quick Reference Guide
 
+> **⚠️ LOCKED DOCUMENT - DO NOT MODIFY**  
+> This quick reference is finalized. For progress tracking, update only `TODO.md`
+
 ## 📁 Document Index
 
 | Document | Purpose | Lines | Key Content |

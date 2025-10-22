@@ -1,5 +1,8 @@
 # Teacher Timetable Extraction System - Detailed TODO List
 
+> **✅ EDITABLE DOCUMENT - This is the ONLY file that should be updated for progress tracking**  
+> All other documentation files (README.md, REQUIREMENTS.md, PROJECT_PLAN.md, ARCHITECTURE.md, FRONTEND_STRATEGY.md, DOCUMENTATION_SUMMARY.md, QUICK_REFERENCE.md) are locked and finalized.
+
 ## 🎯 Project Status: Planning Phase
 **Last Updated**: October 22, 2025
 **Target Completion**: October 24, 2025 (48 hours)
