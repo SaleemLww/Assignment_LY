@@ -18,13 +18,15 @@
     "llm",
     "ocr"
   ],
-  "author": "Learning Yogi",
+  "author": "Saleem Ahmad",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/ioredis": "^4.28.10",
     "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.9.1",
     "nodemon": "^3.1.10",
     "prisma": "^6.18.0",
@@ -33,10 +35,14 @@
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
+    "bullmq": "^5.61.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
-    "morgan": "^1.10.1"
+    "ioredis": "^5.8.2",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "winston": "^3.18.3"
   }
 }

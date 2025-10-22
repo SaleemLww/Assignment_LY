@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { config } from './config/env';
+import uploadRoutes from './routes/upload.routes';
 
 // Create Express app
 const app: Application = express();
@@ -37,7 +38,7 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// API routes will be added here
+// API routes
 app.get('/api', (_req: Request, res: Response) => {
   res.status(200).json({
     message: 'Teacher Timetable Extraction API',
@@ -45,11 +46,14 @@ app.get('/api', (_req: Request, res: Response) => {
     endpoints: {
       health: '/health',
       upload: '/api/upload',
-      extract: '/api/extract',
-      timetables: '/api/timetables',
+      uploadStatus: '/api/upload/status/:jobId',
+      timetables: '/api/timetables (coming soon)',
     },
   });
 });
+
+// Mount routes
+app.use('/api/upload', uploadRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
