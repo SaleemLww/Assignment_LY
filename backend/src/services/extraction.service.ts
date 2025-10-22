@@ -1,5 +1,5 @@
 import { extractTextFromImage, isImageFile } from './ocr.service';
-import { extractTextFromPDF, isPDFFile, isPDFScanned } from './pdf.service';
+import { extractTextFromPDF, isPDFFile } from './pdf.service';
 import { extractTextFromDOCX, isDOCXFile } from './docx.service';
 import { extractTimetableWithLLM, validateTimeBlocks, type TimetableData } from './llm.service';
 import { logInfo, logError } from '../utils/logger';
@@ -42,22 +42,30 @@ export async function extractTimetable(
         processingTime: ocrResult.processingTime,
       });
     } else if (isPDFFile(mimeType)) {
-      // PDF files -> Check if scanned or text-based
-      logInfo('Processing as PDF file');
-      const isScanned = await isPDFScanned(filePath);
+      // PDF files -> AI-powered extraction (auto-detects scanned/text-based/mixed)
+      logInfo('Processing as PDF file (AI-powered extraction)');
+      const pdfResult = await extractTextFromPDF(filePath);
+      extractedText = pdfResult.text;
       
-      if (isScanned) {
-        logInfo('PDF appears to be scanned, using OCR');
-        // For scanned PDFs, we would need to convert to images first
-        // For now, try extracting text anyway
-        const pdfResult = await extractTextFromPDF(filePath);
-        extractedText = pdfResult.text;
+      // Map PDF extraction method to our method enum
+      if (pdfResult.method === 'ai-vision') {
         method = 'hybrid';
+        logInfo(`PDF extraction completed using AI Vision`, {
+          confidence: pdfResult.confidence,
+          processingTime: pdfResult.processingTime,
+        });
+      } else if (pdfResult.method === 'hybrid') {
+        method = 'hybrid';
+        logInfo(`PDF extraction completed using Hybrid approach`, {
+          confidence: pdfResult.confidence,
+          processingTime: pdfResult.processingTime,
+        });
       } else {
-        logInfo('PDF is text-based, extracting directly');
-        const pdfResult = await extractTextFromPDF(filePath);
-        extractedText = pdfResult.text;
         method = 'pdf';
+        logInfo(`PDF extraction completed using direct text extraction`, {
+          confidence: pdfResult.confidence,
+          processingTime: pdfResult.processingTime,
+        });
       }
     } else if (isDOCXFile(mimeType)) {
       // DOCX files -> Direct text extraction
