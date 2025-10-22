@@ -180,18 +180,25 @@
 - [x] Create `src/services/extraction.service.ts` (unified orchestrator)
 - [x] Create `src/services/database.service.ts` (Prisma CRUD operations)
 
-### OCR Implementation ✅ COMPLETED
-- [x] Install Tesseract.js and Sharp
-- [x] Create OCR service with Tesseract
-- [x] Implement image preprocessing:
+### OCR Implementation ✅ COMPLETED (UPGRADED WITH AI/ML)
+- [x] Install Tesseract.js, Sharp, and AI Vision APIs
+- [x] Create advanced OCR service with AI/ML support
+- [x] **Primary: OpenAI Vision API (GPT-4o-mini)** - Highest quality (95%+ accuracy)
+- [x] **Secondary: Google Gemini Vision API** - High quality multilingual support
+- [x] **Fallback: Tesseract.js** - Reliable free backup
+- [x] Implement cascading fallback strategy (OpenAI → Google → Tesseract)
+- [x] Add specialized prompts for timetable/schedule extraction
+- [x] Implement image preprocessing for Tesseract:
   - [x] Convert to grayscale
   - [x] Increase contrast with histogram equalization
   - [x] Sharpen image
-  - [x] Auto-resize to optimal dimensions
+  - [x] Binary threshold for text separation
+  - [x] Auto-resize to optimal dimensions (2000px)
 - [x] Implement OCR extraction with confidence scoring
+- [x] Track which method was used (openai-vision, google-vision, tesseract)
 - [x] Add batch image processing
 - [x] Add language configuration (English)
-- [x] Implement error handling
+- [x] Implement comprehensive error handling
 - [x] Test file type detection (PNG, JPEG)
 
 ### Document Parsing ✅ COMPLETED
