@@ -10,18 +10,18 @@ const TimeBlockSchema = z.object({
   startTime: z.string().describe('Time in HH:mm format (24-hour), e.g., "09:00"'),
   endTime: z.string().describe('Time in HH:mm format (24-hour), e.g., "10:00"'),
   subject: z.string().describe('Subject or course name'),
-  classroom: z.string().optional().describe('Classroom or room number'),
-  grade: z.string().optional().describe('Grade or class level'),
-  section: z.string().optional().describe('Section or division'),
-  notes: z.string().optional().describe('Additional notes or remarks'),
+  classroom: z.string().describe('Classroom or room number'),
+  grade: z.string().describe('Grade or class level'),
+  section: z.string().describe('Section or division'),
+  notes: z.string().describe('Additional notes or remarks'),
 });
 
 // Define the full timetable schema
 const TimetableSchema = z.object({
-  teacherName: z.string().optional().describe('Name of the teacher'),
+  teacherName: z.string().describe('Name of the teacher'),
   timeBlocks: z.array(TimeBlockSchema).describe('Array of timetable entries'),
-  academicYear: z.string().optional().describe('Academic year, e.g., "2024-2025"'),
-  semester: z.string().optional().describe('Semester or term'),
+  academicYear: z.string().describe('Academic year, e.g., "2024-2025"'),
+  semester: z.string().describe('Semester or term'),
 });
 
 // Export schemas for use by intelligent agent
