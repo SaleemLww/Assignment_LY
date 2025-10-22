@@ -1,0 +1,104 @@
+// This is your Prisma schema file for Teacher Timetable Extraction System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Teachers table - stores teacher information
+model Teacher {
+  id        String      @id @default(uuid())
+  name      String
+  email     String?     @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  
+  timetables Timetable[]
+  
+  @@map("teachers")
+}
+
+// Timetables table - stores uploaded timetable documents
+model Timetable {
+  id                String              @id @default(uuid())
+  teacherId         String
+  originalFileName  String
+  fileType          String              // png, jpeg, pdf, docx
+  fileSize          Int
+  filePath          String
+  uploadedAt        DateTime            @default(now())
+  processingStatus  ProcessingStatus    @default(PENDING)
+  extractionMethod  String?             // ocr, llm, hybrid
+  errorMessage      String?
+  
+  teacher           Teacher             @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  timeBlocks        TimeBlock[]
+  processingLogs    ProcessingLog[]
+  
+  @@map("timetables")
+  @@index([teacherId])
+  @@index([processingStatus])
+}
+
+// TimeBlocks table - stores individual timetable entries
+model TimeBlock {
+  id           String    @id @default(uuid())
+  timetableId  String
+  dayOfWeek    DayOfWeek
+  startTime    String    // HH:mm format
+  endTime      String    // HH:mm format
+  subject      String
+  classroom    String?
+  grade        String?
+  section      String?
+  notes        String?
+  confidence   Float?    // LLM confidence score
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  timetable    Timetable @relation(fields: [timetableId], references: [id], onDelete: Cascade)
+  
+  @@map("time_blocks")
+  @@index([timetableId])
+  @@index([dayOfWeek])
+}
+
+// ProcessingLogs table - stores processing history and debugging info
+model ProcessingLog {
+  id              String    @id @default(uuid())
+  timetableId     String
+  step            String    // upload, ocr, llm_extraction, validation, etc.
+  status          String    // started, completed, failed
+  message         String?
+  metadata        Json?     // Store additional context as JSON
+  duration        Int?      // Processing time in milliseconds
+  createdAt       DateTime  @default(now())
+  
+  timetable       Timetable @relation(fields: [timetableId], references: [id], onDelete: Cascade)
+  
+  @@map("processing_logs")
+  @@index([timetableId])
+  @@index([createdAt])
+}
+
+// Enums
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}

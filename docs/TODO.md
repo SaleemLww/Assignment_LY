@@ -67,28 +67,28 @@
 - [x] Create health check endpoint (GET /health)
 - [x] Test server startup (✅ Server runs on port 5000)
 
-### Database Setup (PostgreSQL)
-- [ ] Install Prisma ORM
+### Database Setup (PostgreSQL) ✅ COMPLETED
+- [x] Install Prisma ORM
   ```bash
   npm install @prisma/client
   npm install prisma --save-dev
   npx prisma init
   ```
-- [ ] Create `prisma/schema.prisma`
-- [ ] Define database models:
-  - [ ] Teachers model
-  - [ ] Timetables model
-  - [ ] TimeBlocks model
-  - [ ] ProcessingLogs model
-- [ ] Create initial migration
+- [x] Create `prisma/schema.prisma`
+- [x] Define database models:
+  - [x] Teachers model (id, name, email, timestamps)
+  - [x] Timetables model (id, teacherId, file info, processing status)
+  - [x] TimeBlocks model (id, timetableId, day, times, subject, classroom, confidence)
+  - [x] ProcessingLogs model (id, timetableId, step, status, metadata)
+- [x] Create initial migration (✅ Migration 20251022132140_init applied)
   ```bash
   npx prisma migrate dev --name init
   ```
-- [ ] Generate Prisma Client
+- [x] Generate Prisma Client (✅ Generated successfully)
 - [ ] Create database seed script
-- [ ] Test database connection
+- [ ] Test database connection in app
 - [ ] Create `src/models/` directory
-- [ ] Create model types
+- [ ] Create model types/interfaces
 
 ### Redis & Queue Setup
 - [ ] Install Redis and BullMQ
