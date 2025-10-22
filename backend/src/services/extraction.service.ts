@@ -68,11 +68,33 @@ export async function extractTimetable(
         });
       }
     } else if (isDOCXFile(mimeType)) {
-      // DOCX files -> Direct text extraction
-      logInfo('Processing as DOCX file');
+      // DOCX files -> AI-powered extraction (auto-detects embedded images)
+      logInfo('Processing as DOCX file (AI-powered extraction)');
       const docxResult = await extractTextFromDOCX(filePath);
       extractedText = docxResult.text;
-      method = 'docx';
+      
+      // Map DOCX extraction method to our method enum
+      if (docxResult.method === 'ai-vision') {
+        method = 'hybrid';
+        logInfo(`DOCX extraction completed using AI Vision (image-based)`, {
+          confidence: docxResult.confidence,
+          imagesProcessed: docxResult.imagesProcessed,
+          processingTime: docxResult.processingTime,
+        });
+      } else if (docxResult.method === 'hybrid') {
+        method = 'hybrid';
+        logInfo(`DOCX extraction completed using Hybrid approach (text + images)`, {
+          confidence: docxResult.confidence,
+          imagesProcessed: docxResult.imagesProcessed,
+          processingTime: docxResult.processingTime,
+        });
+      } else {
+        method = 'docx';
+        logInfo(`DOCX extraction completed using direct text extraction`, {
+          confidence: docxResult.confidence,
+          processingTime: docxResult.processingTime,
+        });
+      }
     } else {
       throw new Error(`Unsupported file type: ${mimeType}`);
     }
