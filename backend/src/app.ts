@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { config } from './config/env';
 import uploadRoutes from './routes/upload.routes';
+import timetableRoutes from './routes/timetable.routes';
 
 // Create Express app
 const app: Application = express();
@@ -47,13 +48,17 @@ app.get('/api', (_req: Request, res: Response) => {
       health: '/health',
       upload: '/api/upload',
       uploadStatus: '/api/upload/status/:jobId',
-      timetables: '/api/timetables (coming soon)',
+      timetables: '/api/v1/timetables',
+      timetableById: '/api/v1/timetables/:id',
+      updateTimeBlock: '/api/v1/timetables/:timetableId/blocks/:blockId',
+      deleteTimetable: '/api/v1/timetables/:id',
     },
   });
 });
 
 // Mount routes
 app.use('/api/upload', uploadRoutes);
+app.use('/api/v1/timetables', timetableRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
