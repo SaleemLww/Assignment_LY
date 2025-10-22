@@ -525,7 +525,7 @@ This project is created for Learning Yogi Technical Assessment.
 
 ## 🔗 Resources
 
-- [Design Handover Video](https://www.loom.com/share/your-video-id)
+- [Design Handover Video](https://www.loom.com)
 - [OpenAI API Documentation](https://platform.openai.com/docs)
 - [LangChain Documentation](https://js.langchain.com/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
@@ -560,4 +560,4 @@ This project leverages AI-powered development tools for enhanced productivity:
 
 ---
 
-**Built with ❤️ for Learning Yogi Technical Assessment**
+**Built with ❤️ for Learning Yogi Technical Assessment by Saleem Ahmad **
