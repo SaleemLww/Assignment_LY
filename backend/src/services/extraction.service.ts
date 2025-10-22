@@ -32,11 +32,15 @@ export async function extractTimetable(
 
     // Step 1: Extract text based on file type
     if (isImageFile(mimeType)) {
-      // Image files -> OCR
-      logInfo('Processing as image file (OCR)');
+      // Image files -> OCR with AI/ML (OpenAI Vision, Google Vision, or Tesseract)
+      logInfo('Processing as image file (AI-powered OCR)');
       const ocrResult = await extractTextFromImage(filePath);
       extractedText = ocrResult.text;
       method = 'ocr';
+      logInfo(`OCR extraction completed using: ${ocrResult.method}`, {
+        confidence: ocrResult.confidence,
+        processingTime: ocrResult.processingTime,
+      });
     } else if (isPDFFile(mimeType)) {
       // PDF files -> Check if scanned or text-based
       logInfo('Processing as PDF file');

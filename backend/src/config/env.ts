@@ -14,12 +14,12 @@ interface EnvironmentConfig {
   REDIS_PASSWORD?: string;
   OPENAI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
+  GOOGLE_API_KEY?: string;
   LANGCHAIN_TRACING_V2?: string;
   LANGCHAIN_API_KEY?: string;
   LANGCHAIN_PROJECT?: string;
   UPLOAD_DIR: string;
   MAX_FILE_SIZE: number;
-  GOOGLE_CLOUD_VISION_API_KEY?: string;
 }
 
 class Config {
@@ -41,12 +41,12 @@ class Config {
       REDIS_PASSWORD: process.env.REDIS_PASSWORD,
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+      GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
       LANGCHAIN_TRACING_V2: process.env.LANGCHAIN_TRACING_V2,
       LANGCHAIN_API_KEY: process.env.LANGCHAIN_API_KEY,
       LANGCHAIN_PROJECT: process.env.LANGCHAIN_PROJECT,
       UPLOAD_DIR: process.env.UPLOAD_DIR || './uploads',
       MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB
-      GOOGLE_CLOUD_VISION_API_KEY: process.env.GOOGLE_CLOUD_VISION_API_KEY,
     };
   }
 
