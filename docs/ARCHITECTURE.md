@@ -12,7 +12,7 @@ architecture-beta
     group storage(cloud)[Data Layer]
     group external(cloud)[External Services]
 
-    service web(server)[Next.js Web App] in frontend
+    service web(server)[Next Js Web App] in frontend
     service api(server)[Express API] in backend
     service queue(server)[BullMQ Queue] in backend
     service worker(server)[Worker Service] in processing
