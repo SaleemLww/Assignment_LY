@@ -13,7 +13,7 @@ import fs from 'fs/promises';
  * Handle timetable file upload
  * POST /api/upload
  */
-export const uploadTimetable = async (req: Request, res: Response): Promise<void> => {
+export const uploadTimetable = async (req: Request & { file?: any }, res: Response): Promise<void> => {
   try {
     // Check if file was uploaded
     if (!req.file) {

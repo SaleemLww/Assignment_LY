@@ -29,6 +29,8 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^24.9.1",
     "@types/pdf-parse": "^1.1.5",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "nodemon": "^3.1.10",
     "prisma": "^6.18.0",
     "ts-node": "^10.9.2",
@@ -55,6 +57,8 @@
     "pdf-parse": "^2.4.5",
     "pdf-to-png-converter": "^3.10.0",
     "sharp": "^0.34.4",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "tesseract.js": "^6.0.1",
     "winston": "^3.18.3",
     "zod": "^4.1.12"

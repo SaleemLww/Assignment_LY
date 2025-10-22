@@ -2,15 +2,26 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import swaggerUi from 'swagger-ui-express';
 import { config } from './config/env';
+import { swaggerSpec } from './docs/swagger.config';
 import uploadRoutes from './routes/upload.routes';
 import timetableRoutes from './routes/timetable.routes';
 
 // Create Express app
 const app: Application = express();
 
-// Security middleware
-app.use(helmet());
+// Security middleware - Configure CSP for Swagger UI
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
 
 // CORS configuration
 app.use(cors({
@@ -39,13 +50,21 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// API routes
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Teacher Timetable API Docs',
+}));
+
+// API info endpoint
 app.get('/api', (_req: Request, res: Response) => {
   res.status(200).json({
     message: 'Teacher Timetable Extraction API',
     version: '1.0.0',
+    documentation: '/api-docs',
     endpoints: {
       health: '/health',
+      apiDocs: '/api-docs',
       upload: '/api/upload',
       uploadStatus: '/api/upload/status/:jobId',
       timetables: '/api/v1/timetables',
