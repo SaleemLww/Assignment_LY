@@ -16,7 +16,7 @@
 
 ### 👨‍💼 For Project Managers / Reviewers
 **Start here**: 
-1. [README.md](./README.md) - Project overview (5 min)
+1. [README.md](../README.md) - Project overview (5 min)
 2. [REQUIREMENTS.md](./REQUIREMENTS.md) - Scope and features (10 min)
 3. [ARCHITECTURE.md](./ARCHITECTURE.md) - Technical design (15 min)
 4. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Timeline and phases (10 min)
@@ -25,19 +25,19 @@
 
 ### 👨‍💻 For Developers
 **Start here**:
-1. [README.md](./README.md) - Setup instructions
+1. [README.md](../README.md) - Setup instructions
 2. [TODO.md](./TODO.md) - Task breakdown
 3. [ARCHITECTURE.md](./ARCHITECTURE.md) - System design
 4. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Development workflow
 
 **Then reference**:
 - [FRONTEND_STRATEGY.md](./FRONTEND_STRATEGY.md) - For UI development
-- API docs in [README.md](./README.md) - For integration
+- API docs in [README.md](../README.md) - For integration
 
 ### 🎨 For Frontend Developers
 **Start here**:
 1. [FRONTEND_STRATEGY.md](./FRONTEND_STRATEGY.md) - Complete frontend guide
-2. [README.md](./README.md) - API endpoints for integration
+2. [README.md](../README.md) - API endpoints for integration
 3. [ARCHITECTURE.md](./ARCHITECTURE.md) - Component hierarchy diagrams
 
 ### 🏗️ For Backend Developers
@@ -45,7 +45,7 @@
 1. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Backend phases (1-6)
 2. [TODO.md](./TODO.md) - Detailed task list
 3. [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
-4. [README.md](./README.md) - API specification
+4. [README.md](../README.md) - API specification
 
 ### 📊 For System Architects
 **Focus on**:
