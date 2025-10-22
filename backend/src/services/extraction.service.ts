@@ -2,6 +2,8 @@ import { extractTextFromImage, isImageFile } from './ocr.service';
 import { extractTextFromPDF, isPDFFile } from './pdf.service';
 import { extractTextFromDOCX, isDOCXFile } from './docx.service';
 import { extractTimetableWithLLM, validateTimeBlocks, type TimetableData } from './llm.service';
+import { intelligentExtraction } from './intelligent/intelligent.service';
+import { config } from '../config/env';
 import { logInfo, logError } from '../utils/logger';
 
 export interface ExtractionResult {
@@ -109,14 +111,43 @@ export async function extractTimetable(
       textLength: extractedText.length,
     });
 
-    // Step 2: Use LLM to structure the extracted text
-    logInfo('Starting LLM-based structuring');
-    const llmResult = await extractTimetableWithLLM(extractedText);
+    // Step 2: Use Intelligent Agent or Simple LLM for structuring
+    const useAgenticWorkflow = config.env.USE_AGENTIC_WORKFLOW;
+    logInfo(`Using ${useAgenticWorkflow ? 'AGENTIC' : 'SIMPLE'} extraction mode`);
+    
+    let timetableData: TimetableData;
+    let confidence: number;
+    
+    if (useAgenticWorkflow) {
+      // Use intelligent agent-based extraction (default)
+      logInfo('Starting intelligent agent-based structuring');
+      const agentResult = await intelligentExtraction(
+        extractedText,
+        85, // Base confidence from extraction
+        method,
+        filePath
+      );
+      
+      timetableData = agentResult;
+      confidence = agentResult.metadata?.enhancedConfidence || 85;
+      
+      logInfo('Agent-based extraction completed', {
+        mode: agentResult.metadata?.extractionMode,
+        toolsUsed: agentResult.metadata?.agentToolsUsed,
+        confidence,
+      });
+    } else {
+      // Use simple LLM extraction (legacy)
+      logInfo('Starting LLM-based structuring');
+      const llmResult = await extractTimetableWithLLM(extractedText);
+      timetableData = llmResult.timetableData;
+      confidence = llmResult.confidence;
+    }
 
     // Step 3: Validate extracted time blocks
-    const validatedTimeBlocks = validateTimeBlocks(llmResult.timetableData.timeBlocks);
+    const validatedTimeBlocks = validateTimeBlocks(timetableData.timeBlocks);
     const finalTimetableData: TimetableData = {
-      ...llmResult.timetableData,
+      ...timetableData,
       timeBlocks: validatedTimeBlocks,
     };
 
@@ -125,7 +156,7 @@ export async function extractTimetable(
     logInfo('Timetable extraction completed successfully', {
       method,
       entriesExtracted: validatedTimeBlocks.length,
-      confidence: llmResult.confidence,
+      confidence: confidence,
       totalProcessingTime: processingTime,
     });
 
@@ -134,7 +165,7 @@ export async function extractTimetable(
       timetableData: finalTimetableData,
       extractedText,
       method,
-      confidence: llmResult.confidence,
+      confidence: confidence,
       processingTime,
     };
   } catch (error) {

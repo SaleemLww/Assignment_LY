@@ -20,6 +20,10 @@ interface EnvironmentConfig {
   LANGCHAIN_PROJECT?: string;
   UPLOAD_DIR: string;
   MAX_FILE_SIZE: number;
+  // Intelligent Agent Configuration
+  USE_AGENTIC_WORKFLOW: boolean;
+  AGENT_MAX_ITERATIONS: number;
+  AGENT_VERBOSE: boolean;
 }
 
 class Config {
@@ -47,6 +51,10 @@ class Config {
       LANGCHAIN_PROJECT: process.env.LANGCHAIN_PROJECT,
       UPLOAD_DIR: process.env.UPLOAD_DIR || './uploads',
       MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB
+      // Intelligent Agent Configuration - Defaults to use agents
+      USE_AGENTIC_WORKFLOW: process.env.USE_AGENTIC_WORKFLOW !== 'false', // true by default
+      AGENT_MAX_ITERATIONS: parseInt(process.env.AGENT_MAX_ITERATIONS || '5', 10),
+      AGENT_VERBOSE: process.env.AGENT_VERBOSE === 'true',
     };
   }
 

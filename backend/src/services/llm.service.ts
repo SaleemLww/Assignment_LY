@@ -24,8 +24,12 @@ const TimetableSchema = z.object({
   semester: z.string().optional().describe('Semester or term'),
 });
 
+// Export schemas for use by intelligent agent
+export { TimetableSchema, TimeBlockSchema };
+
 export type TimeBlock = z.infer<typeof TimeBlockSchema>;
 export type TimetableData = z.infer<typeof TimetableSchema>;
+export type TimetableExtractionResult = TimetableData & { metadata?: any };
 
 export interface LLMExtractionResult {
   timetableData: TimetableData;
