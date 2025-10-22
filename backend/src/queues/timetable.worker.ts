@@ -1,6 +1,10 @@
 import { Worker, Job } from 'bullmq';
+import { DayOfWeek, ProcessingStatus } from '@prisma/client';
 import { config } from '../config/env';
 import { TimetableJobData, TimetableJobResult } from './timetable.queue';
+import { extractTimetable } from '../services/extraction.service';
+import { databaseService } from '../services/database.service';
+import { logInfo, logError } from '../utils/logger';
 
 // Redis connection config for BullMQ
 const connection = {
@@ -15,44 +19,127 @@ async function processTimetable(job: Job<TimetableJobData>): Promise<TimetableJo
   const { timetableId, filePath, fileType } = job.data;
 
   try {
-    console.log(`🔄 Processing timetable: ${timetableId}`);
-    console.log(`   File: ${filePath} (${fileType})`);
+    logInfo(`🔄 Processing timetable: ${timetableId}`, {
+      filePath,
+      fileType,
+    });
 
-    // Update progress
+    // Update progress - Starting extraction
     await job.updateProgress(10);
 
-    // TODO: Implement actual processing steps:
-    // 1. OCR extraction (if image/scanned PDF)
-    await job.updateProgress(30);
-
-    // 2. LLM-based extraction
+    // Step 1: Extract timetable data from file
+    logInfo('Step 1: Extracting timetable data');
+    const extractionResult = await extractTimetable(filePath, fileType);
     await job.updateProgress(60);
 
-    // 3. Data validation and structuring
+    if (!extractionResult.success || !extractionResult.timetableData) {
+      throw new Error(extractionResult.error || 'Extraction failed');
+    }
+
+    // Step 2: Data validation (already done in extraction service)
+    logInfo('Step 2: Data validated');
+    await job.updateProgress(70);
+
+    // Step 3: Save to database
+    logInfo('Step 3: Saving to database');
+    
+    // Update timetable status to PROCESSING
+    await databaseService.updateTimetableStatus(timetableId, ProcessingStatus.PROCESSING);
+    
+    // Create processing log
+    await databaseService.createProcessingLog({
+      timetableId,
+      step: 'extraction',
+      status: 'success',
+      message: `Extracted ${extractionResult.timetableData.timeBlocks.length} time blocks`,
+      metadata: {
+        method: extractionResult.method,
+        confidence: extractionResult.confidence,
+        processingTime: extractionResult.processingTime,
+      },
+    });
+    
     await job.updateProgress(80);
 
-    // 4. Save to database
+    // Save time blocks to database
+    await databaseService.createTimeBlocks(
+      timetableId,
+      extractionResult.timetableData.timeBlocks.map((block) => ({
+        dayOfWeek: block.dayOfWeek as DayOfWeek,
+        startTime: block.startTime,
+        endTime: block.endTime,
+        subject: block.subject,
+        classroom: block.classroom,
+        grade: block.grade,
+        section: block.section,
+        notes: block.notes,
+        confidence: extractionResult.confidence,
+      }))
+    );
+
+    await job.updateProgress(90);
+
+    // Update timetable status to COMPLETED
+    await databaseService.updateTimetableStatus(timetableId, ProcessingStatus.COMPLETED);
+
+    // Step 4: Complete
     await job.updateProgress(100);
 
     const processingTime = Date.now() - startTime;
+
+    logInfo(`✅ Timetable processing completed: ${timetableId}`, {
+      entriesExtracted: extractionResult.timetableData.timeBlocks.length,
+      confidence: extractionResult.confidence,
+      processingTime,
+    });
 
     // Return result
     return {
       timetableId,
       status: 'success',
       extractedData: {
-        timeBlocks: [], // Will be populated by actual extraction service
+        timeBlocks: extractionResult.timetableData.timeBlocks.map((block) => ({
+          dayOfWeek: block.dayOfWeek,
+          startTime: block.startTime,
+          endTime: block.endTime,
+          subject: block.subject,
+          classroom: block.classroom,
+          grade: block.grade,
+          section: block.section,
+          notes: block.notes,
+          confidence: extractionResult.confidence,
+        })),
       },
       processingTime,
     };
   } catch (error) {
     const processingTime = Date.now() - startTime;
-    console.error(`❌ Error processing timetable ${timetableId}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logError(`❌ Error processing timetable ${timetableId}`, error);
+
+    // Update timetable status to FAILED
+    try {
+      await databaseService.updateTimetableStatus(
+        timetableId,
+        ProcessingStatus.FAILED,
+        errorMessage
+      );
+
+      // Create processing log for error
+      await databaseService.createProcessingLog({
+        timetableId,
+        step: 'processing',
+        status: 'failed',
+        message: errorMessage,
+      });
+    } catch (dbError) {
+      logError('Error updating timetable status', dbError);
+    }
 
     return {
       timetableId,
       status: 'failed',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: errorMessage,
       processingTime,
     };
   }

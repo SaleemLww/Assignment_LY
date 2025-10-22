@@ -1,104 +1,135 @@
 import { Request, Response, NextFunction } from 'express';
-import { uploadSingleFile, getFileInfo, deleteFile } from '../middleware/upload';
-import { addTimetableJob } from '../queues/timetable.queue';
+import { addTimetableJob, getJobStatus as getJobStatusFromQueue } from '../queues/timetable.queue';
+import { databaseService } from '../services/database.service';
 import { logInfo, logError } from '../utils/logger';
+import fs from 'fs/promises';
 
-// Upload controller
-export const uploadTimetable = (req: Request, res: Response, _next: NextFunction): void => {
-  // Handle file upload
-  uploadSingleFile(req, res, async (err) => {
-      if (err) {
-        logError('File upload error', err);
-        return res.status(400).json({
-          error: 'Upload failed',
-          message: err.message,
-        });
-      }
+/**
+ * Upload Controller
+ * Handles file upload and job creation for timetable processing
+ */
 
-      if (!req.file) {
-        return res.status(400).json({
-          error: 'No file provided',
-          message: 'Please upload a file',
-        });
-      }
-
-      try {
-        // Get teacher info from request body
-        const { teacherName } = req.body;
-
-        if (!teacherName) {
-          deleteFile(req.file.path);
-          return res.status(400).json({
-            error: 'Missing required field',
-            message: 'Teacher name is required',
-          });
-        }
-
-        // Get file info
-        const fileInfo = getFileInfo(req.file);
-
-        // TODO: Create teacher and timetable records in database
-        const timetableId = 'temp-' + Date.now(); // Temporary ID
-        const teacherId = 'temp-teacher-' + Date.now(); // Temporary ID
-
-        // Add job to queue for processing
-        const job = await addTimetableJob({
-          timetableId,
-          teacherId,
-          filePath: fileInfo.path,
-          fileType: fileInfo.mimetype,
-          fileName: fileInfo.originalName,
-        });
-
-        logInfo('Timetable upload successful', {
-          jobId: job.id,
-          timetableId,
-          fileName: fileInfo.originalName,
-        });
-
-        // Return success response
-        res.status(200).json({
-          message: 'File uploaded successfully',
-          data: {
-            jobId: job.id,
-            timetableId,
-            fileName: fileInfo.originalName,
-            fileSize: fileInfo.size,
-            uploadedAt: fileInfo.uploadedAt,
-            status: 'queued',
-          },
-        });
-      } catch (error) {
-        // Clean up uploaded file on error
-        if (req.file) {
-          deleteFile(req.file.path);
-        }
-        logError('Upload processing error', error);
-        return res.status(500).json({
-          error: 'Processing failed',
-          message: 'An error occurred while processing the upload',
-        });
-      }
-    });
-};
-
-// Get job status controller
-export const getJobStatus = async (req: Request, res: Response, next: NextFunction) => {
+/**
+ * Handle timetable file upload
+ * POST /api/upload
+ */
+export const uploadTimetable = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { jobId } = req.params;
+    // Check if file was uploaded
+    if (!req.file) {
+      res.status(400).json({
+        success: false,
+        error: 'No file uploaded. Please provide a timetable file.',
+      });
+      return;
+    }
 
-    // TODO: Implement get job status from queue
-    // const jobStatus = await getJobStatusFromQueue(jobId);
+    // Get teacher name from request body
+    const { teacherName, teacherEmail } = req.body;
+    if (!teacherName || typeof teacherName !== 'string') {
+      // Clean up uploaded file if validation fails
+      await fs.unlink(req.file.path);
+      res.status(400).json({
+        success: false,
+        error: 'Teacher name is required',
+      });
+      return;
+    }
 
-    res.status(200).json({
-      message: 'Job status retrieved',
+    const file = req.file;
+
+    logInfo('📁 File uploaded', {
+      filename: file.filename,
+      originalName: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+      path: file.path,
+    });
+
+    // Step 1: Find or create teacher
+    const teacher = await databaseService.findOrCreateTeacher({
+      name: teacherName,
+      email: teacherEmail,
+    });
+
+    // Step 2: Create timetable record in database
+    const timetable = await databaseService.createTimetable({
+      teacherId: teacher.id,
+      filePath: file.path,
+      fileType: file.mimetype,
+      originalFileName: file.originalname,
+      fileSize: file.size,
+    });
+
+    // Step 3: Add job to processing queue
+    const job = await addTimetableJob({
+      timetableId: timetable.id,
+      teacherId: teacher.id,
+      filePath: file.path,
+      fileType: file.mimetype,
+      fileName: file.originalname,
+    });
+
+    logInfo('✅ File uploaded and queued', {
+      timetableId: timetable.id,
+      jobId: job.id,
+    });
+
+    // Return success response with job ID
+    res.status(201).json({
+      success: true,
+      message: 'File uploaded successfully and queued for processing',
       data: {
-        jobId,
-        status: 'processing', // Temporary
+        jobId: job.id,
+        timetableId: timetable.id,
+        fileName: file.originalname,
+        fileSize: file.size,
+        status: 'queued',
       },
     });
   } catch (error) {
-    logError('Get job status error', error);
+    logError('❌ Error uploading file', error);
+
+    // Clean up file if it exists
+    if (req.file) {
+      await fs.unlink(req.file.path).catch(() => {
+        // Ignore cleanup errors
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to upload file',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * Get job status
+ * GET /api/upload/status/:jobId
+ */
+export const getJobStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { jobId } = req.params;
+
+    const jobStatus = await getJobStatusFromQueue(jobId);
+
+    if (!jobStatus) {
+      res.status(404).json({
+        success: false,
+        error: 'Job not found',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Job status retrieved',
+      data: jobStatus,
+    });
+  } catch (error) {
+    logError('Error getting job status', error);
     next(error);
   }
 };
