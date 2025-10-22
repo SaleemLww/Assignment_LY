@@ -2,8 +2,9 @@
 
 ## 📅 Timeline: 48 Hours
 
-### Assessment Received: October 22, 2025
-### Submission Deadline: October 24, 2025
+- Assessment Received: October 22, 2025
+- Start Time: October 22, 2025, 03:00 PM
+
 
 ---
 
