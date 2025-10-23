@@ -51,6 +51,14 @@ export async function getTimetableById(req: Request, res: Response, next: NextFu
         },
         status: timetable.processingStatus,
         extractionMethod: timetable.extractionMethod,
+        // Calculate average confidence from time blocks
+        confidence: timetable.timeBlocks.length > 0
+          ? Math.round(
+              timetable.timeBlocks.reduce((sum, block) => sum + (block.confidence || 0), 0) /
+              timetable.timeBlocks.length
+            )
+          : null,
+        semester: null, // Not stored in database yet
         timeBlocks: timetable.timeBlocks.map((block) => ({
           id: block.id,
           dayOfWeek: block.dayOfWeek,
