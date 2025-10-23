@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTimetable, type Timetable } from '../services/api';
-import { ChevronLeft, Loader2, Calendar, User, BookOpen, Clock } from 'lucide-react';
+import { ChevronLeft, Loader2, Calendar, User, BookOpen, Clock, CalendarDays, CalendarRange } from 'lucide-react';
+
+type ViewMode = 'daily' | 'weekly' | 'monthly';
 
 export default function TimetableDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -9,6 +11,7 @@ export default function TimetableDetailPage() {
   const [timetable, setTimetable] = useState<Timetable | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('weekly');
 
   useEffect(() => {
     const fetchTimetable = async () => {
@@ -38,6 +41,155 @@ export default function TimetableDetailPage() {
   // Helper function to format day for display
   const formatDayName = (day: string) => {
     return day.charAt(0) + day.slice(1).toLowerCase();
+  };
+
+  // Get all unique time slots across all days
+  const getAllTimeSlots = () => {
+    if (!timetable) return [];
+    const timeSlots = new Set<string>();
+    timetable.timeBlocks.forEach(block => {
+      timeSlots.add(block.startTime);
+    });
+    return Array.from(timeSlots).sort();
+  };
+
+  // Get time block for specific day and time
+  const getBlockForDayAndTime = (day: string, time: string) => {
+    return timetable?.timeBlocks.find(
+      block => block.dayOfWeek === day && block.startTime === time
+    );
+  };
+
+  // Render weekly grid view
+  const renderWeeklyView = () => {
+    const timeSlots = getAllTimeSlots();
+    const activeDays = daysOfWeek.filter(day => getTimeBlocksByDay(day).length > 0);
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700 w-32">
+                Time
+              </th>
+              {activeDays.map(day => (
+                <th key={day} className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700">
+                  {formatDayName(day)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {timeSlots.map(time => (
+              <tr key={time} className="hover:bg-gray-50">
+                <td className="border border-gray-300 px-4 py-3 font-medium text-gray-600 bg-gray-50">
+                  {time}
+                </td>
+                {activeDays.map(day => {
+                  const block = getBlockForDayAndTime(day, time);
+                  return (
+                    <td key={`${day}-${time}`} className="border border-gray-300 px-3 py-2">
+                      {block ? (
+                        <div className="space-y-1">
+                          <div className="font-semibold text-sm text-gray-900">{block.subject}</div>
+                          <div className="text-xs text-gray-600">
+                            {block.startTime} - {block.endTime}
+                          </div>
+                          {block.classroom && (
+                            <div className="text-xs text-gray-500">📍 {block.classroom}</div>
+                          )}
+                          {block.grade && (
+                            <div className="text-xs text-gray-500">📚 Grade {block.grade} {block.section}</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-gray-300 text-xs">—</div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  // Render daily view (single day detailed)
+  const renderDailyView = () => {
+    const activeDays = daysOfWeek.filter(day => getTimeBlocksByDay(day).length > 0);
+    const selectedDay = activeDays[0] || daysOfWeek[0];
+    const blocks = getTimeBlocksByDay(selectedDay);
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="w-5 h-5 text-primary" />
+          <h3 className="text-xl font-bold text-gray-900">{formatDayName(selectedDay)}</h3>
+        </div>
+        <div className="space-y-3">
+          {blocks.map(block => (
+            <div key={block.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="px-3 py-1 bg-primary text-white text-sm font-medium rounded">
+                      {block.startTime} - {block.endTime}
+                    </span>
+                    <h4 className="font-semibold text-lg text-gray-900">{block.subject}</h4>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    {block.classroom && <span>📍 {block.classroom}</span>}
+                    {block.grade && <span>📚 Grade {block.grade}</span>}
+                    {block.section && <span>📋 Section {block.section}</span>}
+                  </div>
+                  {block.notes && (
+                    <p className="mt-2 text-sm text-gray-600 italic">{block.notes}</p>
+                  )}
+                </div>
+                <span className="text-xs text-gray-500">{Math.round(block.confidence)}% confident</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Render monthly view (all days in cards)
+  const renderMonthlyView = () => {
+    const activeDays = daysOfWeek.filter(day => getTimeBlocksByDay(day).length > 0);
+
+    return (
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {activeDays.map(day => {
+          const blocks = getTimeBlocksByDay(day);
+          return (
+            <div key={day} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+              <div className="bg-primary text-white px-4 py-3">
+                <h3 className="font-bold text-lg">{formatDayName(day)}</h3>
+                <p className="text-sm opacity-90">{blocks.length} classes</p>
+              </div>
+              <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
+                {blocks.map(block => (
+                  <div key={block.id} className="border-l-4 border-primary pl-3 py-2 hover:bg-gray-50">
+                    <div className="font-medium text-sm text-gray-900">{block.subject}</div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      {block.startTime} - {block.endTime}
+                    </div>
+                    {block.classroom && (
+                      <div className="text-xs text-gray-500 mt-1">📍 {block.classroom}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -111,50 +263,54 @@ export default function TimetableDetailPage() {
               </div>
             </div>
 
+            {/* View Mode Switcher */}
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Weekly Schedule</h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setViewMode('daily')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      viewMode === 'daily'
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <CalendarDays className="w-4 h-4 inline mr-2" />
+                    Daily
+                  </button>
+                  <button
+                    onClick={() => setViewMode('weekly')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      viewMode === 'weekly'
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Calendar className="w-4 h-4 inline mr-2" />
+                    Weekly
+                  </button>
+                  <button
+                    onClick={() => setViewMode('monthly')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      viewMode === 'monthly'
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <CalendarRange className="w-4 h-4 inline mr-2" />
+                    Monthly
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Timetable Grid */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Weekly Schedule</h2>
-
-                <div className="space-y-6">
-                  {daysOfWeek.map((day) => {
-                    const blocks = getTimeBlocksByDay(day);
-                    if (blocks.length === 0) return null;
-
-                    return (
-                      <div key={day}>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">{formatDayName(day)}</h3>
-                        <div className="grid gap-3">{blocks.map((block) => (
-                            <div
-                              key={block.id}
-                              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                            >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-2">
-                                    <span className="px-2 py-1 bg-primary text-white text-xs font-medium rounded">
-                                      {block.startTime} - {block.endTime}
-                                    </span>
-                                    <h4 className="font-semibold text-gray-900">{block.subject}</h4>
-                                  </div>
-                                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                                    {block.classroom && <span>📍 {block.classroom}</span>}
-                                    {block.grade && <span>📚 Grade {block.grade}</span>}
-                                    {block.section && <span>📋 Section {block.section}</span>}
-                                  </div>
-                                  {block.notes && (
-                                    <p className="mt-2 text-sm text-gray-600 italic">{block.notes}</p>
-                                  )}
-                                </div>
-                                <span className="text-xs text-gray-500">{Math.round(block.confidence)}% confident</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                {viewMode === 'daily' && renderDailyView()}
+                {viewMode === 'weekly' && renderWeeklyView()}
+                {viewMode === 'monthly' && renderMonthlyView()}
               </div>
             </div>
           </div>
