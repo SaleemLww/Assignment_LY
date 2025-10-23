@@ -46,6 +46,21 @@ async function processTimetable(job: Job<TimetableJobData>): Promise<TimetableJo
     // Update timetable status to PROCESSING
     await databaseService.updateTimetableStatus(timetableId, ProcessingStatus.PROCESSING);
     
+    // Update teacher name with extracted name if available
+    if (extractionResult.timetableData.teacherName && extractionResult.timetableData.teacherName.trim()) {
+      const timetable = await databaseService.getTimetableWithDetails(timetableId);
+      if (timetable) {
+        logInfo('Updating teacher name with extracted value', {
+          oldName: timetable.teacher.name,
+          newName: extractionResult.timetableData.teacherName,
+        });
+        
+        await databaseService.updateTeacher(timetable.teacher.id, {
+          name: extractionResult.timetableData.teacherName,
+        });
+      }
+    }
+    
     // Create processing log
     await databaseService.createProcessingLog({
       timetableId,
@@ -56,6 +71,7 @@ async function processTimetable(job: Job<TimetableJobData>): Promise<TimetableJo
         method: extractionResult.method,
         confidence: extractionResult.confidence,
         processingTime: extractionResult.processingTime,
+        extractedTeacherName: extractionResult.timetableData.teacherName,
       },
     });
     

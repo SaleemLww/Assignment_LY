@@ -41,15 +41,13 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
       return;
     }
 
-    if (!teacherName.trim()) {
-      toast.error('Please enter teacher name');
-      return;
-    }
+    // Use a default name if not provided - will be replaced by extracted name
+    const nameToUse = teacherName.trim() || 'Pending Extraction';
 
     setIsUploading(true);
 
     try {
-      const response = await uploadTimetable(selectedFile, teacherName.trim());
+      const response = await uploadTimetable(selectedFile, nameToUse);
       toast.success('File uploaded successfully! Processing...');
       onUploadSuccess(response.data.jobId, response.data.timetableId);
     } catch (error: any) {
@@ -72,17 +70,20 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
       {/* Teacher Name Input */}
       <div>
         <label htmlFor="teacherName" className="block text-sm font-medium text-gray-700 mb-2">
-          Teacher Name *
+          Teacher Name <span className="text-gray-500 text-xs">(will be auto-extracted from document)</span>
         </label>
         <input
           type="text"
           id="teacherName"
           value={teacherName}
           onChange={(e) => setTeacherName(e.target.value)}
-          placeholder="Enter teacher's full name"
+          placeholder="Enter temporary name (optional - will be updated after extraction)"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
           disabled={isUploading}
         />
+        <p className="mt-1 text-xs text-gray-500">
+          💡 You can enter any temporary name. The actual teacher name will be extracted from the timetable document and updated automatically.
+        </p>
       </div>
 
       {/* File Upload Dropzone */}

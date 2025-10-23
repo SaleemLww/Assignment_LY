@@ -76,6 +76,27 @@ class DatabaseService {
   }
 
   /**
+   * Update teacher information
+   */
+  async updateTeacher(teacherId: string, input: Partial<CreateTeacherInput>) {
+    try {
+      const teacher = await prisma.teacher.update({
+        where: { id: teacherId },
+        data: {
+          name: input.name,
+          email: input.email,
+        },
+      });
+
+      logInfo(`Updated teacher: ${teacher.name} (ID: ${teacher.id})`);
+      return teacher;
+    } catch (error) {
+      logError(`Error updating teacher ${teacherId}`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Create a new timetable record
    */
   async createTimetable(input: CreateTimetableInput) {
