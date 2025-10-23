@@ -103,7 +103,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 ```bash
 git clone git@github.com:SaleemLww/Assignment_LY.git
-cd Assignment_LY/TA_Assignment_Pack
+cd Assignment_LY
 ```
 
 ### 2. Environment Setup
