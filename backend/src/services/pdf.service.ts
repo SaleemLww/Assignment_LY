@@ -7,6 +7,7 @@ import path from 'path';
 import os from 'os';
 import { logInfo, logError, logWarn } from '../utils/logger';
 import { config } from '../config/env';
+import { buildPDFPageExtractionPrompt } from './prompts/ocr.prompts';
 
 /**
  * Advanced PDF Service with AI/ML Support
@@ -52,6 +53,9 @@ async function extractWithOpenAIVision(pdfImages: Buffer[]): Promise<string> {
 
       const base64Image = pdfImages[i].toString('base64');
 
+      // Use standardized prompt from shared module (same for OpenAI and Google)
+      const prompt = buildPDFPageExtractionPrompt(i + 1, pdfImages.length);
+
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -66,7 +70,7 @@ async function extractWithOpenAIVision(pdfImages: Buffer[]): Promise<string> {
               content: [
                 {
                   type: 'text',
-                  text: `Extract ALL text from this PDF page. This is page ${i + 1}. Maintain the original structure and formatting. Return ONLY the extracted text without commentary.`,
+                  text: prompt,
                 },
                 {
                   type: 'image_url',
@@ -78,7 +82,7 @@ async function extractWithOpenAIVision(pdfImages: Buffer[]): Promise<string> {
             },
           ],
           max_tokens: 2000,
-          temperature: 0.1,
+          temperature: 0, // Deterministic extraction
         }),
       });
 
@@ -123,7 +127,8 @@ async function extractWithGoogleVision(pdfImages: Buffer[]): Promise<string> {
 
       const base64Image = pdfImages[i].toString('base64');
 
-      const prompt = `Extract ALL text from this PDF page (page ${i + 1}). Maintain the original structure and formatting. Return ONLY the extracted text without commentary.`;
+      // Use standardized prompt from shared module (same as OpenAI)
+      const prompt = buildPDFPageExtractionPrompt(i + 1, pdfImages.length);
 
       const result = await model.generateContent([
         prompt,

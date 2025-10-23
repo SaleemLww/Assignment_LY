@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { logInfo, logError, logWarn } from '../utils/logger';
 import { config } from '../config/env';
+import { buildDOCXImageExtractionPrompt } from './prompts/ocr.prompts';
 
 /**
  * Advanced DOCX Service with AI/ML Support
@@ -44,6 +45,9 @@ async function extractWithOpenAIVision(imageBuffers: Buffer[]): Promise<string> 
 
       const base64Image = imageBuffers[i].toString('base64');
 
+      // Use standardized prompt from shared module
+      const prompt = buildDOCXImageExtractionPrompt(i + 1, imageBuffers.length);
+
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -58,7 +62,7 @@ async function extractWithOpenAIVision(imageBuffers: Buffer[]): Promise<string> 
               content: [
                 {
                   type: 'text',
-                  text: `Extract ALL text from this image (embedded in a Word document). This is image ${i + 1}. Maintain the original structure and formatting. Return ONLY the extracted text without commentary.`,
+                  text: prompt,
                 },
                 {
                   type: 'image_url',
@@ -70,7 +74,7 @@ async function extractWithOpenAIVision(imageBuffers: Buffer[]): Promise<string> 
             },
           ],
           max_tokens: 2000,
-          temperature: 0.1,
+          temperature: 0, // Deterministic extraction
         }),
       });
 
@@ -115,7 +119,8 @@ async function extractWithGoogleVision(imageBuffers: Buffer[]): Promise<string> 
 
       const base64Image = imageBuffers[i].toString('base64');
 
-      const prompt = `Extract ALL text from this image (embedded in a Word document, image ${i + 1}). Maintain the original structure and formatting. Return ONLY the extracted text without commentary.`;
+      // Use standardized prompt from shared module (same as OpenAI)
+      const prompt = buildDOCXImageExtractionPrompt(i + 1, imageBuffers.length);
 
       const result = await model.generateContent([
         prompt,
