@@ -1,9 +1,12 @@
 /**
- * Intelligent Agent System - Entry Point
+ * Intelligent Two-Agent System - Entry Point
  * 
- * Export all intelligent extraction components for easy integration
+ * Pure agentic workflow with two specialized agents:
+ * 1. Extraction Agent: File → Raw Text
+ * 2. Analysis Agent: Raw Text → Structured Timetable
  */
 
-export { intelligentExtraction, extractWithAgent, extractWithSimpleLLM } from './intelligent.service';
-export { agentTools } from './agent.tools';
-export { runTimetableExtractionAgent, runSimpleExtraction } from './extraction.agent';
+export { intelligentExtraction } from './intelligent.service';
+export { runExtractionAgent } from './extraction.agent';
+export { runAnalysisAgent } from './analysis.agent';
+

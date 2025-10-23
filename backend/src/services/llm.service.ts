@@ -2,7 +2,8 @@ import { ChatOpenAI } from '@langchain/openai';
 import { ChatAnthropic } from '@langchain/anthropic';
 import { z } from 'zod';
 import { config } from '../config/env';
-import { logInfo, logError } from '../utils/logger';
+import { logInfo, logError, logWarn } from '../utils/logger';
+import { processWithEmbeddings, areEmbeddingsAvailable } from './embedding.service';
 
 // Define the timetable entry schema with enhanced field descriptions
 const TimeBlockSchema = z.object({
@@ -51,6 +52,42 @@ export interface LLMExtractionResult {
 }
 
 /**
+ * Chunk text semantically for embedding-based retrieval
+ * Splits text into logical sections (by day, by time periods, etc.)
+ */
+function chunkTextSemanticly(text: string): string[] {
+  const chunks: string[] = [];
+  
+  // Split by day headers (MONDAY, TUESDAY, etc.)
+  const dayPattern = /(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY)/gi;
+  const sections = text.split(dayPattern);
+  
+  // Recombine day headers with their content
+  for (let i = 1; i < sections.length; i += 2) {
+    if (sections[i] && sections[i + 1]) {
+      chunks.push(sections[i] + '\n' + sections[i + 1]);
+    }
+  }
+  
+  // If no day headers found, chunk by line breaks (fallback)
+  if (chunks.length === 0) {
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    
+    // Group every 5-10 lines as a chunk
+    for (let i = 0; i < lines.length; i += 8) {
+      chunks.push(lines.slice(i, i + 8).join('\n'));
+    }
+  }
+  
+  // If still no chunks, return full text as single chunk
+  if (chunks.length === 0) {
+    chunks.push(text);
+  }
+  
+  return chunks;
+}
+
+/**
  * Initialize LLM based on available API keys
  */
 function initializeLLM() {
@@ -75,6 +112,7 @@ function initializeLLM() {
 
 /**
  * Extract timetable data from text using LLM with advanced Data Extraction Agent prompt
+ * Uses embeddings-first approach: chunk text → embed → retrieve relevant chunks → single LLM call
  */
 export async function extractTimetableWithLLM(text: string): Promise<LLMExtractionResult> {
   const startTime = Date.now();
@@ -86,91 +124,251 @@ export async function extractTimetableWithLLM(text: string): Promise<LLMExtracti
 
     // Create structured output parser
     const structuredLLM = llm.withStructuredOutput(TimetableSchema);
+    
+    // Step 1: PRE-PROCESS with embeddings to reduce token usage (if available)
+    let contextToSend = text;
+    let embeddingContext = '';
+    
+    if (areEmbeddingsAvailable() && text.length > 2000) {
+      try {
+        logInfo('🧠 Pre-processing text with embeddings to reduce tokens');
+        
+        // Chunk large text into semantic sections
+        const chunks = chunkTextSemanticly(text);
+        logInfo(`📄 Chunked text into ${chunks.length} semantic sections`);
+        
+        // Create embeddings for chunks and retrieve most relevant ones
+        const { OpenAIEmbeddings } = await import('@langchain/openai');
+        const { MemoryVectorStore } = await import('langchain/vectorstores/memory');
+        
+        const embeddings = new OpenAIEmbeddings({
+          apiKey: config.env.OPENAI_API_KEY,
+          modelName: 'text-embedding-3-small',
+        });
+        
+        const vectorStore = await MemoryVectorStore.fromTexts(
+          chunks,
+          chunks.map((_chunk: string, i: number) => ({ index: i })),
+          embeddings
+        );
+        
+        // Retrieve top 5 most relevant chunks (instead of all text)
+        const relevantChunks = await vectorStore.similaritySearch('timetable schedule teacher class', 5);
+        const conciseText = relevantChunks.map((doc: any) => doc.pageContent).join('\n\n');
+        
+        contextToSend = conciseText;
+        embeddingContext = `\n\n**Note**: This is a semantically-filtered excerpt (${conciseText.length} chars) from the original text (${text.length} chars) to reduce token usage while preserving key information.`;
+        
+        logInfo(`✅ Token optimization: ${text.length} → ${conciseText.length} chars (${Math.round((1 - conciseText.length/text.length) * 100)}% reduction)`);
+      } catch (embeddingError) {
+        logWarn('⚠️  Embedding pre-processing failed, using full text', embeddingError);
+        // Fallback to full text if embeddings fail
+        contextToSend = text;
+      }
+    } else if (text.length <= 2000) {
+      logInfo('ℹ️  Text is small (<2000 chars), using full text without embeddings');
+    } else {
+      logInfo('ℹ️  Embeddings not available, using full text');
+    }
 
-    // Advanced Data Extraction Agent Prompt
-    const prompt = `You are the Data Extraction Agent. Your mission is to extract all visible timetable data from the uploaded document and produce a reliable, provenance-rich, high-quality structured JSON output.
+    // Step 2: Single LLM call with optimized context
+    // Advanced Data Structuring & Analysis Agent Prompt (Stage 2: Text → JSON)
+    const prompt = `You are the Data Structuring & Analysis Agent. Your mission is to parse already-extracted timetable text into clean, structured, validated, database-ready JSON.${embeddingContext}
 
-HIGH-LEVEL GOALS:
-• Extract text, table structure, and layout metadata from the document
-• Detect tables, cells, row/column boundaries, merged cells, and rotated text
-• For each extracted datum, ensure accuracy and completeness
-• Produce consistent structured JSON with raw text and semantic fields (teacher name, day, time, subject, class, room, topic, remarks)
+**CRITICAL CONTEXT**: The text you receive has already been extracted from documents using OCR/PDF parsers. Your job is NOT to perform OCR extraction - it's to UNDERSTAND, STRUCTURE, NORMALIZE, and VALIDATE the pre-extracted text.
 
-CAPABILITIES YOU HAVE:
-• Advanced OCR text understanding with layout/table detection awareness
-• Table structure recognition with cell boundary detection
-• Language normalization (English primary)
-• Confidence scoring per text block and field extraction
-• Smart field candidate discovery using patterns and heuristics
+## Your Input - Pre-Extracted Text
+You receive raw text that has already been extracted by OCR/Vision APIs from timetable images/PDFs. This text may contain:
+- Unstructured time entries (e.g., "Monday 8:00 AM Math Room 101 Grade 10A")
+- Inconsistent formatting variations (Rm vs Room, 8:00 vs 08:00, Math vs Mathematics)
+- Day headers scattered throughout the text
+- Break periods mixed with regular classes
+- Academic metadata in headers (academic year, semester, teacher name)
+- OCR artifacts (O→0, l/I confusion, spacing issues)
 
-STEP-BY-STEP EXTRACTION STRATEGY:
-1. **Preprocess & Normalize**: Identify table structure, normalize text (trim whitespace, unify unicode, fix OCR errors like O→0 in times, l/I confusion)
+## Your Job - Transform RAW TEXT → STRUCTURED JSON
 
-2. **Table Structure Detection**: Recognize table layouts with days (columns/rows), time slots, and subject cells. If no clear table, use line/column segmentation.
+### Stage 1: Identify & Extract Academic Metadata
+Search the ENTIRE text for:
+- **Teacher name**: Usually in headers ("Teacher:", "Instructor:", prominent text at top)
+- **Academic year**: Patterns like "2024-2025", "Academic Year 2024-2025", "2024/25"
+- **Semester/Term**: "Fall 2024", "Spring 2025", "Term 1", "Semester 2", "Autumn Term"
 
-3. **Field Candidate Discovery**: For each cell/line, identify candidate fields:
-   - Teacher name (search headers, top text, large fonts)
-   - Day of week (MONDAY, TUESDAY, etc. - detect from headers or row labels)
-   - Start/End times (normalize to HH:mm 24-hour format, handle periods P1/P2 if no times)
-   - Subject/course name
-   - Classroom/room (normalize: Rm/R./Room → Room, Lab patterns)
-   - Grade/class level (Year + Section format like 10A)
-   - Section/division
-   - Topic or additional notes
-   - Break detection (lunch, recess, assembly, registration)
+### Stage 2: Parse & Structure Time Blocks
+For EACH time entry found in the text, extract and structure:
 
-4. **Time Normalization**: Convert all times to 24-hour HH:mm format. Try multiple formats (12-hour AM/PM, 24-hour, colon/dot separators). If only period labels (P1, P2) exist without times, still capture the period structure.
+**Time Parsing & Normalization:**
+- Convert ALL time formats to strict 24-hour HH:MM format:
+  - "8:00 AM" → "08:00"
+  - "2:30 PM" → "14:30"
+  - "12:00" (noon) → "12:00"
+  - "8.30" or "8-30" → "08:30"
+- Fix OCR errors in times (O→0, l→1)
+- If only period labels exist (P1, P2, Period 3), extract period and estimate typical school times
 
-5. **Data Quality Checks**:
-   - Mark fields with low confidence (< 0.6) for review
-   - If teacher name missing or confidence < 0.7, search entire document for candidate names
-   - Validate time formats strictly (HH:mm)
-   - Ensure day names are uppercase (MONDAY, TUESDAY, etc.)
-   - Detect and mark duplicate or overlapping entries
+**Day of Week Detection & Normalization:**
+- Map variations to full uppercase format:
+  - "Monday", "Mon", "M" → "MONDAY"
+  - "Tuesday", "Tue", "T" → "TUESDAY"
+  - Handle multi-day entries: "Mon-Wed" → create separate blocks for Monday, Tuesday, Wednesday
 
-6. **Academic Metadata Extraction**:
-   - Extract academic year (e.g., "2024-2025", "Academic Year 2024-2025")
-   - Extract semester/term (e.g., "Fall 2024", "Spring 2025", "Term 1", "Semester 2")
-   - These often appear in headers, footers, or title areas
+**Field Extraction & Normalization:**
+- **subject**: Course/class name
+  - Normalize common abbreviations: "Math" → "Mathematics", "PE" → "Physical Education", "Sci" → "Science"
+  - Detect breaks: "lunch", "break", "free", "assembly", "registration" → mark as break type
+- **classroom**: Room number/location
+  - Normalize patterns: "Rm 101" → "Room 101", "R.101" → "Room 101", "Lab1" → "Lab 1"
+- **grade**: Student year/grade level
+  - Normalize patterns: "10A" → "Grade 10", "Y10" → "Year 10", "Form 5" → "Grade 5"
+- **section**: Class section letter if present (A, B, C, etc.)
+- **topic**: Specific lesson topic if mentioned (e.g., "Algebra", "World War II", "Cell Division")
+- **notes**: Additional information, period labels, special instructions
 
-EXTRACTION RULES:
-✓ Extract ALL visible timetable entries you can find - no data should be missed
-✓ Use EXACT text from document - don't invent or hallucinate data
-✓ If information is missing or uncertain, leave field empty (don't guess)
-✓ Normalize times consistently: 8:30 AM → 08:30, 2:45 PM → 14:45
-✓ Preserve breaks, assemblies, registration periods (mark in notes)
-✓ For merged cells spanning multiple time slots, create separate entries for clarity
-✓ Handle multi-line cell content (subject + room in same cell)
+**Confidence Scoring (0.0-1.0):**
+- **0.9-1.0**: Clear, complete data (all key fields present and unambiguous)
+- **0.7-0.89**: Most fields present, minor formatting inconsistencies
+- **0.5-0.69**: Missing some fields or unclear formatting
+- **Below 0.5**: Highly uncertain, significant data missing or ambiguous
 
-QUALITY THRESHOLDS:
-• Minimum confidence for auto-acceptance: 0.7
-• Fields with confidence < 0.6 should be marked but still extracted
-• If teacher name has confidence < 0.7, provide reasoning
-• Validate no time overlaps for same day
+### Stage 3: Data Quality Validation
+Perform these checks:
+- ✅ NO duplicate time blocks (same day + time + subject)
+- ✅ NO overlapping time slots (same teacher can't be in two places)
+- ✅ Time blocks chronologically ordered per day
+- ✅ startTime MUST be before endTime
+- ✅ Day names in proper format (MONDAY, TUESDAY, etc.)
+- ✅ Times in HH:MM 24-hour format
+- ⚠️ If conflicts found, keep highest confidence entry and mark conflict in notes
 
-OUTPUT FORMAT:
-Return structured JSON with:
-- teacherName (string) - extracted teacher name
-- timeBlocks (array) - all timetable entries with day, times, subject, classroom, grade, section, notes
-- academicYear (string) - academic year if found (e.g., "2024-2025")
-- semester (string) - semester/term if found (e.g., "Fall 2024")
+### Stage 4: Handle Missing Data (Evidence-Based Only)
+- **If teacher name not found**: Search headers, top lines, signature areas, large text
+- **If room missing**: Leave as empty string (do NOT invent)
+- **If grade missing**: Leave as empty string (do NOT guess)
+- **If times ambiguous**: Use context clues (typical school hours 08:00-16:00)
+- **CRITICAL**: NEVER hallucinate data - only extract what explicitly exists in the text
 
-Each timeBlock must have:
-- dayOfWeek: MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY
-- startTime: HH:mm format (24-hour)
-- endTime: HH:mm format (24-hour)
-- subject: course/subject name
-- classroom: room number (empty string if not found)
-- grade: grade/year level (empty string if not found)
-- section: section/division (empty string if not found)
-- notes: additional information, breaks, topics (empty string if none)
+## Output Format - Structured JSON Schema
 
-TIMETABLE TEXT TO EXTRACT FROM:
-${text}
+Return ONLY valid JSON matching this exact structure:
 
-Now extract the complete timetable data with maximum accuracy and completeness:`;
+\`\`\`json
+{
+  "teacherName": "Full teacher name extracted from document headers",
+  "academicYear": "2024-2025" or null if not found,
+  "semester": "Fall 2024" or "Spring 2025" or null if not found,
+  "timeBlocks": [
+    {
+      "dayOfWeek": "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY",
+      "startTime": "HH:MM" (24-hour format, e.g., "08:35", "14:00"),
+      "endTime": "HH:MM" (24-hour format, e.g., "09:30", "15:45"),
+      "subject": "Full subject name (normalized)",
+      "classroom": "Room identifier (normalized)" or empty string,
+      "grade": "Grade/Year level" or empty string,
+      "section": "Section letter" or empty string,
+      "notes": "Additional info, breaks, topics" or empty string
+    }
+  ]
+}
+\`\`\`
 
-    // Execute extraction
+## Critical Rules - MUST FOLLOW
+1. ✅ DO normalize inconsistent formats (Rm → Room, Math → Mathematics)
+2. ✅ DO convert all times to HH:MM 24-hour format strictly
+3. ✅ DO detect and mark breaks/lunch/assembly periods
+4. ✅ DO use context for ambiguous data (school hours typically 08:00-16:00)
+5. ❌ DO NOT invent data that doesn't exist in the text
+6. ❌ DO NOT duplicate time blocks
+7. ❌ DO NOT create overlapping schedules for same teacher
+8. ❌ DO NOT hallucinate teacher names, rooms, or subjects
+
+## Example Transformation
+
+### Input (Raw Extracted Text):
+\`\`\`
+Teacher Timetable
+Ms. Sarah Johnson
+Academic Year: 2024-2025
+
+MONDAY
+8:00 AM - 9:00 AM    Mathematics    Room 101    Grade 10A
+9:15 AM - 10:15 AM   Mathematics    Room 101    Grade 10B
+10:30 AM - 11:00 AM  BREAK
+11:00 AM - 12:00 PM  Geometry       Rm 103      Y9A
+
+TUESDAY
+8:00 - 9:00          Math           Lab1        10C
+\`\`\`
+
+### Output (Structured JSON):
+\`\`\`json
+{
+  "teacherName": "Ms. Sarah Johnson",
+  "academicYear": "2024-2025",
+  "semester": "",
+  "timeBlocks": [
+    {
+      "dayOfWeek": "MONDAY",
+      "startTime": "08:00",
+      "endTime": "09:00",
+      "subject": "Mathematics",
+      "classroom": "Room 101",
+      "grade": "Grade 10A",
+      "section": "",
+      "notes": ""
+    },
+    {
+      "dayOfWeek": "MONDAY",
+      "startTime": "09:15",
+      "endTime": "10:15",
+      "subject": "Mathematics",
+      "classroom": "Room 101",
+      "grade": "Grade 10B",
+      "section": "",
+      "notes": ""
+    },
+    {
+      "dayOfWeek": "MONDAY",
+      "startTime": "10:30",
+      "endTime": "11:00",
+      "subject": "Break",
+      "classroom": "",
+      "grade": "",
+      "section": "",
+      "notes": "Morning break"
+    },
+    {
+      "dayOfWeek": "MONDAY",
+      "startTime": "11:00",
+      "endTime": "12:00",
+      "subject": "Geometry",
+      "classroom": "Room 103",
+      "grade": "Year 9A",
+      "section": "",
+      "notes": ""
+    },
+    {
+      "dayOfWeek": "TUESDAY",
+      "startTime": "08:00",
+      "endTime": "09:00",
+      "subject": "Mathematics",
+      "classroom": "Lab 1",
+      "grade": "Grade 10C",
+      "section": "",
+      "notes": ""
+    }
+  ]
+}
+\`\`\`
+
+---
+
+## Now Process This Pre-Extracted Timetable Text:
+
+${contextToSend}
+
+Parse and structure this text into clean, validated JSON following all rules above:`;
+
+    // Step 3: Execute SINGLE LLM call with optimized context
     const result = await structuredLLM.invoke(prompt);
 
     const processingTime = Date.now() - startTime;
@@ -178,13 +376,14 @@ Now extract the complete timetable data with maximum accuracy and completeness:`
     // Calculate confidence based on completeness
     const confidence = calculateConfidence(result);
 
-    logInfo('LLM extraction completed with Data Extraction Agent', {
+    logInfo('✅ LLM extraction completed with Data Structuring Agent', {
       entriesExtracted: result.timeBlocks.length,
       confidence,
       processingTime,
       teacherFound: !!result.teacherName,
       academicYearFound: !!result.academicYear,
       semesterFound: !!result.semester,
+      tokenOptimization: embeddingContext ? 'enabled' : 'disabled',
     });
 
     return {
