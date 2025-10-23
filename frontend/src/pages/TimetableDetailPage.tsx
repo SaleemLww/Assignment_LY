@@ -27,12 +27,17 @@ export default function TimetableDetailPage() {
     fetchTimetable();
   }, [id]);
 
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const daysOfWeek = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
   const getTimeBlocksByDay = (day: string) => {
     return timetable?.timeBlocks.filter((block) => block.dayOfWeek === day).sort((a, b) => {
       return a.startTime.localeCompare(b.startTime);
     }) || [];
+  };
+
+  // Helper function to format day for display
+  const formatDayName = (day: string) => {
+    return day.charAt(0) + day.slice(1).toLowerCase();
   };
 
   return (
@@ -118,9 +123,8 @@ export default function TimetableDetailPage() {
 
                     return (
                       <div key={day}>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">{day}</h3>
-                        <div className="grid gap-3">
-                          {blocks.map((block) => (
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">{formatDayName(day)}</h3>
+                        <div className="grid gap-3">{blocks.map((block) => (
                             <div
                               key={block.id}
                               className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
