@@ -641,7 +641,7 @@ This project is created for Learning Yogi Technical Assessment.
 
 ## 🔗 Resources
 
-- [Design Handover Video](https://www.loom.com)
+- [Design Handover Video](https://www.loom.com/share/a7e81713dd0749b7838f4107a00e906e?sid=92b4f509-d609-441a-8c33-0799bc26281c)
 - [OpenAI API Documentation](https://platform.openai.com/docs)
 - [LangChain Documentation](https://js.langchain.com/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
@@ -663,7 +663,7 @@ For questions or issues, please create a GitHub issue or contact the development
 - [ ] API Documentation
 - [ ] Git Repository with Clear Commits
 - [ ] Error Handling & Fallbacks
-- [ ] Handover Video (Loom)
+- [ ] Handover Video ([Loom](https://www.loom.com/share/a7e81713dd0749b7838f4107a00e906e?sid=92b4f509-d609-441a-8c33-0799bc26281c))
 
 ## 🎓 AI Tools Used
 
