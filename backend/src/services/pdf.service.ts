@@ -1,4 +1,4 @@
-import pdf from 'pdf-parse';
+import * as pdfParse from 'pdf-parse';
 import { pdfToPng } from 'pdf-to-png-converter';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs/promises';
@@ -242,7 +242,7 @@ export async function extractTextFromPDF(pdfPath: string): Promise<PDFExtraction
 
     // Parse PDF with pdf-parse
     // @ts-ignore - pdf-parse types issue
-    const pdfData = await pdf(dataBuffer);
+    const pdfData = await pdfParse(dataBuffer);
 
     const textLength = pdfData.text.trim().length;
     const textDensity = textLength / pdfData.numpages;

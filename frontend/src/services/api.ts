@@ -102,14 +102,42 @@ export const uploadTimetable = async (file: File, teacherName: string): Promise<
 
 // Get job status
 export const getJobStatus = async (jobId: string): Promise<JobStatus> => {
-  const response = await api.get<JobStatus>(`/upload/status/${jobId}`);
-  return response.data;
+  const response = await api.get<{ success: boolean; message: string; data: any }>(`/upload/status/${jobId}`);
+  const jobData = response.data.data;
+  
+  // Transform backend response to frontend format
+  return {
+    jobId: jobData.id,
+    status: jobData.state, // Backend uses 'state' instead of 'status'
+    progress: jobData.progress || 0,
+    result: jobData.returnvalue, // Backend uses 'returnvalue' for job result
+    failedReason: jobData.failedReason,
+  };
 };
 
 // Get timetable by ID
 export const getTimetable = async (id: string): Promise<Timetable> => {
-  const response = await api.get<Timetable>(`/v1/timetables/${id}`);
-  return response.data;
+  const response = await api.get<{ success: boolean; message: string; data: any }>(`/v1/timetables/${id}`);
+  const data = response.data.data;
+  
+  // Transform backend response to frontend format
+  return {
+    id: data.id,
+    teacherId: data.teacher.id,
+    teacherName: data.teacher.name,
+    fileName: data.fileInfo.originalName,
+    fileSize: data.fileInfo.fileSize,
+    mimeType: data.fileInfo.fileType,
+    status: data.status,
+    processingProgress: 100, // Completed timetables are at 100%
+    confidence: data.confidence,
+    errorMessage: data.errorMessage,
+    academicYear: data.academicYear,
+    semester: data.semester,
+    createdAt: data.uploadedAt,
+    updatedAt: data.uploadedAt,
+    timeBlocks: data.timeBlocks,
+  };
 };
 
 // List all timetables with pagination
@@ -120,8 +148,31 @@ export const listTimetables = async (params?: {
   status?: string;
   sort?: string;
 }): Promise<TimetablesListResponse> => {
-  const response = await api.get<TimetablesListResponse>('/v1/timetables', { params });
-  return response.data;
+  const response = await api.get<{ success: boolean; data: any; meta: any }>('/v1/timetables', { params });
+  
+  // Transform each timetable in the list
+  const transformedData = response.data.data.map((item: any) => ({
+    id: item.id,
+    teacherId: item.teacher.id,
+    teacherName: item.teacher.name,
+    fileName: item.fileInfo.originalName,
+    fileSize: item.fileInfo.fileSize,
+    mimeType: item.fileInfo.fileType,
+    status: item.status,
+    processingProgress: item.status === 'COMPLETED' ? 100 : item.status === 'PROCESSING' ? 50 : 0,
+    confidence: item.confidence,
+    errorMessage: item.errorMessage,
+    academicYear: item.academicYear,
+    semester: item.semester,
+    createdAt: item.uploadedAt,
+    updatedAt: item.uploadedAt,
+    timeBlocks: item.timeBlocks || [],
+  }));
+  
+  return {
+    data: transformedData,
+    meta: response.data.meta,
+  };
 };
 
 // Delete timetable

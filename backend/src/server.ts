@@ -1,5 +1,6 @@
 import app from './app';
 import { config } from './config/env';
+import timetableWorker, { closeWorker } from './queues/timetable.worker';
 
 const PORT = config.env.PORT;
 
@@ -11,12 +12,16 @@ const server = app.listen(PORT, () => {
   console.log(`🌐 Port: ${PORT}`);
   console.log(`🔗 URL: http://localhost:${PORT}`);
   console.log(`💚 Health: http://localhost:${PORT}/health`);
+  console.log(`🔥 Worker: Started and listening for jobs`);
   console.log('=================================');
 });
 
 // Graceful shutdown
-const gracefulShutdown = (signal: string) => {
+const gracefulShutdown = async (signal: string) => {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
+  
+  // Close worker first
+  await closeWorker();
   
   server.close(() => {
     console.log('✅ HTTP server closed');
