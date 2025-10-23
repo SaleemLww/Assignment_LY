@@ -11,23 +11,47 @@ import timetableRoutes from './routes/timetable.routes';
 // Create Express app
 const app: Application = express();
 
-// Security middleware - Configure CSP for Swagger UI
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
+// CORS configuration - MUST be first, before any other middleware
+app.use(cors({
+  origin: config.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 }));
 
-// CORS configuration
-app.use(cors({
-  origin: config.env.CORS_ORIGIN,
-  credentials: true,
-}));
+// Debug middleware - log all requests
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path} from ${req.get('origin') || 'no origin'}`);
+  console.log(`   CORS Origin configured: ${config.env.CORS_ORIGIN || 'http://localhost:3000'}`);
+  next();
+});
+
+// Test CORS endpoint
+app.get('/test-cors', (_req: Request, res: Response) => {
+  res.status(200).json({ message: 'CORS is working!', timestamp: new Date().toISOString() });
+});
+
+app.post('/test-upload', (_req: Request, res: Response) => {
+  res.status(200).json({ message: 'Upload endpoint reached!', timestamp: new Date().toISOString() });
+});
+
+// Security middleware - Configure CSP for Swagger UI (disabled for CORS testing)
+if (!config.isDevelopment()) {
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
+    },
+  }));
+}
 
 // Logging middleware
 if (config.isDevelopment()) {

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { uploadTimetable, getJobStatus } from '../controllers/upload.controller';
+import { uploadSingleFile } from '../middleware/upload';
 
 const router = Router();
 
@@ -119,7 +120,7 @@ const router = Router();
  *       500:
  *         $ref: '#/components/responses/InternalError'
  */
-router.post('/', uploadTimetable);
+router.post('/', uploadSingleFile, uploadTimetable);
 
 /**
  * @swagger
