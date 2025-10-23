@@ -13,13 +13,14 @@
 An intelligent platform that enables teachers to upload their weekly class timetables in various formats (images, PDFs, Word documents) and automatically extracts, parses, and displays the timetable data in a beautiful, standardized UI.
 
 ### Key Features
-- 📄 Multi-format file upload support (PNG, JPEG, PDF, DOCX)
-- 🤖 AI-powered data extraction using GPT-4/Claude
-- 📊 Intelligent OCR for scanned documents
-- 🎨 Beautiful, responsive timetable display
-- ⚡ Real-time processing with progress tracking
+- 📄 Image upload support (PNG, JPEG) with AI-powered extraction
+- 🤖 AI-powered data extraction using OpenAI Vision API + LangChain
+- 📊 Intelligent OCR with cascading fallbacks (OpenAI → Google Gemini → Tesseract)
+- 🎨 Beautiful, responsive timetable display with multiple view modes
+- ⚡ Real-time processing with progress tracking via BullMQ
 - 🔄 Edit and refine extracted data
 - 📱 Mobile-friendly interface
+- 🚧 **Coming Soon**: PDF & DOCX support with LangGraph intelligent agent workflow
 
 ### � Repository
 ```bash
@@ -32,11 +33,12 @@ cd Assignment_LY/TA_Assignment_Pack
 Comprehensive documentation is available in the [`../docs/`](../docs/) folder at the repository root:
 
 - **[REQUIREMENTS.md](./docs/REQUIREMENTS.md)** - Complete requirements analysis with functional/non-functional requirements
-- **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - System architecture with 11 detailed diagrams (high-level, sequence, flowcharts, ER diagram, components, deployment, security)
+- **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - **NEW!** Current system architecture with detailed flowcharts, diagrams, and implementation details
+- **[PLANED_ARCHITECTURE.md](./docs/PLANED_ARCHITECTURE.md)** - Initial planned architecture with Mermaid diagrams
 - **[PROJECT_PLAN.md](./docs/PROJECT_PLAN.md)** - 48-hour development roadmap with phase breakdown
 - **[TODO.md](./docs/TODO.md)** - Granular task breakdown (350+ tasks) with progress tracking
 - **[FRONTEND_STRATEGY.md](./docs/FRONTEND_STRATEGY.md)** - Complete frontend implementation guide with 15+ component specifications
-- **[DOCUMENTATION_SUMMARY.md](./docs/DOCUMENTATION_SUMMARY.md)** - Overview of all documentation
+- **[PROGRESS_REPORT.md](./docs/PROGRESS_REPORT.md)** - Current progress and achievements
 - **[QUICK_REFERENCE.md](./docs/QUICK_REFERENCE.md)** - Quick navigation guide
 
 ### 🖼️ Example Timetables

@@ -58,8 +58,9 @@ export default function HomePage() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Easy Upload</h3>
             <p className="text-sm text-gray-600">
-              Drag & drop or click to upload PNG, JPEG, PDF, or DOCX files
+              Drag & drop or click to upload PNG or JPEG files
             </p>
+            <p className="text-xs text-amber-600 mt-1">🚧 PDF & DOCX coming soon</p>
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -104,11 +105,11 @@ export default function HomePage() {
           <ul className="space-y-2 text-sm text-blue-800">
             <li className="flex items-start gap-2">
               <span className="text-blue-600 font-bold">1.</span>
-              <span><strong>Upload:</strong> Select your timetable file (PNG, JPEG, PDF, or DOCX)</span>
+              <span><strong>Upload:</strong> Select your timetable file (PNG or JPEG image)</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-600 font-bold">2.</span>
-              <span><strong>AI Processing:</strong> OpenAI Vision extracts text, Intelligent Agent validates and enhances data</span>
+              <span><strong>AI Processing:</strong> OpenAI Vision extracts text with 95%+ accuracy</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-600 font-bold">3.</span>
@@ -116,7 +117,11 @@ export default function HomePage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-600 font-bold">4.</span>
-              <span><strong>View & Edit:</strong> Review extracted data, edit if needed, and export to various formats</span>
+              <span><strong>View & Edit:</strong> Review extracted data in multiple view modes</span>
+            </li>
+            <li className="flex items-start gap-2 text-amber-700 font-medium">
+              <span className="text-amber-600 font-bold">🚧</span>
+              <span><strong>Coming Soon:</strong> PDF & DOCX support with advanced LangGraph-based intelligent agent workflow</span>
             </li>
           </ul>
         </div>

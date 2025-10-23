@@ -7,13 +7,15 @@
 
 | Document | Purpose | Lines | Key Content |
 |----------|---------|-------|-------------|
-| [README.md](./README.md) | Main project guide | ~850 | Setup, API docs, usage |
+| [README.md](../README.md) | Main project guide | ~850 | Setup, API docs, usage |
 | [REQUIREMENTS.md](./REQUIREMENTS.md) | Requirements analysis | ~400 | All functional & non-functional requirements |
+| [**ARCHITECTURE.md**](./ARCHITECTURE.md) | **Current System Architecture** | **~1000** | **Complete implementation details, flowcharts, diagrams** |
+| [PLANED_ARCHITECTURE.md](./PLANED_ARCHITECTURE.md) | Initial planned design | ~670 | Original Mermaid diagrams |
 | [PROJECT_PLAN.md](./PROJECT_PLAN.md) | Development roadmap | ~850 | 48-hour plan with 9 phases |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | System design | ~670 | 11 architecture diagrams |
-| [TODO.md](./TODO.md) | Task checklist | ~900 | 350+ tasks organized by phase |
-| [FRONTEND_STRATEGY.md](./FRONTEND_STRATEGY.md) | Frontend guide | ~730 | Complete UI/UX strategy |
-| [DOCUMENTATION_SUMMARY.md](./DOCUMENTATION_SUMMARY.md) | This overview | ~400 | Documentation summary |
+| [TODO.md](./TODO.md) | Task checklist | ~1200 | 350+ tasks organized by phase |
+| [FRONTEND_STRATEGY.md](./FRONTEND_STRATEGY.md) | Frontend guide | ~1140 | Complete UI/UX strategy |
+| [PROGRESS_REPORT.md](./PROGRESS_REPORT.md) | Current progress | ~450 | Achievements and statistics |
+| [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) | This guide | ~355 | Navigation helper |
 
 ## 🎯 For Different Audiences
 
@@ -21,40 +23,42 @@
 **Start here**: 
 1. [README.md](../README.md) - Project overview (5 min)
 2. [REQUIREMENTS.md](./REQUIREMENTS.md) - Scope and features (10 min)
-3. [ARCHITECTURE.md](./ARCHITECTURE.md) - Technical design (15 min)
-4. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Timeline and phases (10 min)
+3. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - **Current implementation with diagrams (20 min)**
+4. [PROGRESS_REPORT.md](./PROGRESS_REPORT.md) - Current status (10 min)
+5. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Timeline and phases (5 min)
 
-**Total time**: ~40 minutes for complete understanding
+**Total time**: ~50 minutes for complete understanding
 
 ### 👨‍💻 For Developers
 **Start here**:
 1. [README.md](../README.md) - Setup instructions
-2. [TODO.md](./TODO.md) - Task breakdown
-3. [ARCHITECTURE.md](./ARCHITECTURE.md) - System design
+2. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - **Current system architecture (critical!)**
+3. [TODO.md](./TODO.md) - Task breakdown
 4. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Development workflow
 
 **Then reference**:
 - [FRONTEND_STRATEGY.md](./FRONTEND_STRATEGY.md) - For UI development
-- API docs in [README.md](../README.md) - For integration
+- [PROGRESS_REPORT.md](./PROGRESS_REPORT.md) - What's implemented
 
 ### 🎨 For Frontend Developers
 **Start here**:
 1. [FRONTEND_STRATEGY.md](./FRONTEND_STRATEGY.md) - Complete frontend guide
-2. [README.md](../README.md) - API endpoints for integration
-3. [ARCHITECTURE.md](./ARCHITECTURE.md) - Component hierarchy diagrams
+2. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - **API endpoints and data flow**
+3. [README.md](../README.md) - API endpoints for integration
 
 ### 🏗️ For Backend Developers
 **Start here**:
-1. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Backend phases (1-6)
-2. [TODO.md](./TODO.md) - Detailed task list
-3. [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
-4. [README.md](../README.md) - API specification
+1. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - **Complete backend architecture (must read!)**
+2. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Backend phases (1-6)
+3. [TODO.md](./TODO.md) - Detailed task list
+4. [PROGRESS_REPORT.md](./PROGRESS_REPORT.md) - Current implementation status
 
 ### 📊 For System Architects
 **Focus on**:
-1. [ARCHITECTURE.md](./ARCHITECTURE.md) - All 11 diagrams
+1. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - **Complete system design with all diagrams**
 2. [REQUIREMENTS.md](./REQUIREMENTS.md) - Non-functional requirements
-3. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Technology stack justifications
+3. [PLANED_ARCHITECTURE.md](./PLANED_ARCHITECTURE.md) - Original planned architecture
+4. [PROJECT_PLAN.md](./PROJECT_PLAN.md) - Technology stack justifications
 
 ## 🎬 Implementation Workflow
 

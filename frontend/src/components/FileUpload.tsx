@@ -24,8 +24,9 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
     accept: {
       'image/png': ['.png'],
       'image/jpeg': ['.jpg', '.jpeg'],
-      'application/pdf': ['.pdf'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      // PDF and DOCX temporarily disabled - coming soon
+      // 'application/pdf': ['.pdf'],
+      // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
     },
     maxFiles: 1,
     maxSize: 10 * 1024 * 1024, // 10MB
@@ -102,7 +103,10 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
             {isDragActive ? 'Drop the file here' : 'Drag & drop or click to select'}
           </p>
           <p className="text-sm text-gray-600">
-            Supported formats: PNG, JPEG, PDF, DOCX (Max 10MB)
+            Supported formats: PNG, JPEG (Max 10MB)
+          </p>
+          <p className="text-xs text-amber-600 mt-2 font-medium">
+            🚧 PDF & DOCX support coming soon with LangGraph workflow
           </p>
         </div>
       ) : (
