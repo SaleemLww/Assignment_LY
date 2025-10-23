@@ -214,7 +214,7 @@ export async function extractTimetableWithLLM(text: string): Promise<LLMExtracti
     // Advanced Data Structuring & Analysis Agent Prompt (Stage 2: Text → JSON)
     const prompt = `You are the Data Structuring & Analysis Agent. Your mission is to parse already-extracted timetable text into clean, structured, validated, database-ready JSON.${embeddingContext}
 
-**CRITICAL CONTEXT**: The text you receive has already been extracted from documents using OCR/PDF parsers. Your job is NOT to perform OCR extraction - it's to UNDERSTAND, STRUCTURE, NORMALIZE, and VALIDATE the pre-extracted text.
+**CRITICAL CONTEXT**: The text you receive has already been extracted from documents using LLM OCR/PDF APIs. Your job is NOT to perform OCR extraction - it's to UNDERSTAND, STRUCTURE, NORMALIZE, and VALIDATE the pre-extracted text.
 
 ## Your Input - Pre-Extracted Text
 You receive raw text that has already been extracted by OCR/Vision APIs from timetable images/PDFs. This text may contain:
