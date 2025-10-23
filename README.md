@@ -525,7 +525,8 @@ Assignment_LY/
 ### Git Workflow
 ```bash
 # Create feature branch
-git checkout -b feature/add-export-functionality
+git checkout -b LYA/add-export-functionality
+git checkout -b LY Assignment/add-export-functionality
 
 # Make changes and commit frequently
 git add .
@@ -539,6 +540,7 @@ git push origin feature/add-export-functionality
 
 ### Commit Convention
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
+- `LYA:` - Learning Yogi Assignment specific changes
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `docs:` - Documentation changes
