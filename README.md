@@ -119,7 +119,21 @@ cd Assignment_LY/TA_Assignment_Pack
 - `LANGCHAIN_API_KEY` - LangSmith monitoring (optional)
 - See `.env.example` for complete configuration options
 
-### 3. Using Docker (Recommended)
+### 3. Quick Start with Server Scripts (macOS - Recommended)
+
+The fastest way to get started on macOS:
+
+```bash
+# Start both backend and frontend servers
+./start-servers.sh
+
+# Stop all servers when done
+./stop-servers.sh
+```
+
+This will automatically start both servers in separate Terminal windows for easy monitoring.
+
+### 4. Using Docker (Recommended)
 
 ```bash
 # Start all services
@@ -132,7 +146,7 @@ docker-compose logs -f
 docker-compose down
 ```
 
-### 4. Manual Setup
+### 5. Manual Setup
 
 #### Backend
 ```bash
@@ -154,6 +168,47 @@ npm install
 # Start development server
 npm run dev
 ```
+
+### 6. Server Management Scripts (Recommended for macOS)
+
+The project includes convenient shell scripts for managing both backend and frontend servers simultaneously:
+
+#### Start All Servers
+```bash
+./start-servers.sh
+```
+
+**What it does:**
+- 🔪 Kills all existing Node.js processes (clean slate)
+- 🚀 Starts backend server on port **5001** in a new Terminal window
+- 🎨 Starts frontend server on port **3000** in a new Terminal window
+- ✅ Provides visual feedback with colored output
+- 📊 Shows server status and URLs
+
+**Benefits:**
+- One command to start everything
+- Automatic cleanup of stale processes
+- Separate terminal windows for easy monitoring
+- Color-coded status messages
+- No port conflicts
+
+#### Stop All Servers
+```bash
+./stop-servers.sh
+```
+
+**What it does:**
+- 🔪 Gracefully terminates all Node.js processes
+- ✅ Confirms when servers are stopped
+- 🧹 Cleans up background processes
+
+**Use Cases:**
+- Quick restart after code changes
+- Clean shutdown before system maintenance
+- Troubleshooting port conflicts
+- Switching between projects
+
+> **Note:** These scripts are designed for macOS and use AppleScript to open new Terminal windows. For Windows or Linux, use the manual setup commands above or adapt the scripts for your platform.
 
 ## 📡 API Documentation
 
