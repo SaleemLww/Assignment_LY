@@ -14,7 +14,7 @@
  */
 
 import { OpenAIEmbeddings } from '@langchain/openai';
-import { MemoryVectorStore } from 'langchain/vectorstores/memory';
+import { SimpleVectorStore } from './simple-vector-store';
 import { Document } from '@langchain/core/documents';
 import { type TimeBlock, type TimetableData } from './llm.service';
 import { logInfo, logError, logWarn } from '../utils/logger';
@@ -57,7 +57,7 @@ export interface SemanticInsights {
 export interface EnhancedExtractionResult {
   timetableData: TimetableData;
   embeddedBlocks: EmbeddedTimeBlock[];
-  vectorStore: MemoryVectorStore;
+  vectorStore: SimpleVectorStore;
   semanticInsights: SemanticInsights;
   refinementContext: string;
 }
@@ -149,7 +149,7 @@ export async function processWithEmbeddings(
       totalDocuments: documents.length,
     });
 
-    const vectorStore = await MemoryVectorStore.fromDocuments(documents, embeddings);
+    const vectorStore = await SimpleVectorStore.fromDocuments(documents, embeddings);
 
     // Step 4: Generate embeddings for each block
     logInfo('🔢 Generating individual block embeddings');
@@ -230,7 +230,7 @@ export async function processWithEmbeddings(
  */
 async function performSemanticAnalysis(
   blocks: EmbeddedTimeBlock[],
-  vectorStore: MemoryVectorStore,
+  vectorStore: SimpleVectorStore,
   timetableData: TimetableData
 ): Promise<SemanticInsights> {
   const duplicates: SemanticInsights['duplicates'] = [];

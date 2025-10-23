@@ -42,12 +42,13 @@ export async function extractTimetable(
       `Using ${useAgenticWorkflow ? "AGENTIC" : "SIMPLE"} extraction mode`
     );
 
-    let timetableData: TimetableData;
-    let confidence: number;
+    let timetableData: TimetableData | undefined;
+    let confidence: number | undefined;
 
     if (useAgenticWorkflow) {
       // Use intelligent agent-based extraction (default)
-      logInfo("Starting intelligent agent-based structuring");
+      logInfo("Agentic workflow is not yet implemented, falling back to simple extraction");
+      // TODO: Implement agentic workflow
       // const agentResult = await intelligentExtraction(
       //   'ocr',
       //   filePath
@@ -61,7 +62,10 @@ export async function extractTimetable(
       //   toolsUsed: agentResult.metadata?.agentToolsUsed,
       //   confidence,
       // });
-    } else {
+    }
+    
+    // Always use simple extraction for now (until agentic workflow is implemented)
+    if (!timetableData) {
       // Step 1: Extract text based on file type
       if (isImageFile(mimeType)) {
         // Image files -> OCR with AI/ML (OpenAI Vision, Google Vision, or Tesseract)
@@ -151,6 +155,11 @@ export async function extractTimetable(
       confidence = llmResult.confidence;
     }
 
+    // Ensure timetableData is defined
+    if (!timetableData) {
+      throw new Error("Failed to extract timetable data");
+    }
+
     // Step 3: Validate extracted time blocks
     const validatedTimeBlocks = validateTimeBlocks(timetableData.timeBlocks);
     const finalTimetableData: TimetableData = {
@@ -160,10 +169,13 @@ export async function extractTimetable(
 
     const processingTime = Date.now() - startTime;
 
+    // Ensure confidence has a value
+    const finalConfidence = confidence ?? 75; // Default confidence if undefined
+
     logInfo("Timetable extraction completed successfully", {
       method,
       entriesExtracted: validatedTimeBlocks.length,
-      confidence: confidence,
+      confidence: finalConfidence,
       totalProcessingTime: processingTime,
     });
 
@@ -172,7 +184,7 @@ export async function extractTimetable(
       timetableData: finalTimetableData,
       extractedText,
       method,
-      confidence: confidence,
+      confidence: finalConfidence,
       processingTime,
     };
   } catch (error) {

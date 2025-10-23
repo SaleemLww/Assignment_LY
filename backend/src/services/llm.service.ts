@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { config } from '../config/env';
 import { logInfo, logError, logWarn } from '../utils/logger';
 import { processWithEmbeddings, areEmbeddingsAvailable } from './embedding.service';
+import { SimpleVectorStore } from './simple-vector-store';
 
 // Define the timetable entry schema with enhanced field descriptions
 const TimeBlockSchema = z.object({
@@ -139,14 +140,13 @@ export async function extractTimetableWithLLM(text: string): Promise<LLMExtracti
         
         // Create embeddings for chunks and retrieve most relevant ones
         const { OpenAIEmbeddings } = await import('@langchain/openai');
-        const { MemoryVectorStore } = await import('langchain/vectorstores/memory');
         
         const embeddings = new OpenAIEmbeddings({
           apiKey: config.env.OPENAI_API_KEY,
           modelName: 'text-embedding-3-small',
         });
         
-        const vectorStore = await MemoryVectorStore.fromTexts(
+        const vectorStore = await SimpleVectorStore.fromTexts(
           chunks,
           chunks.map((_chunk: string, i: number) => ({ index: i })),
           embeddings
