@@ -6,7 +6,7 @@ import {
   validateTimeBlocks,
   type TimetableData,
 } from "./llm.service";
-import { intelligentExtraction } from "./intelligent/intelligent.service";
+// import { intelligentExtraction } from "./intelligent/intelligent.service";
 import { config } from "../config/env";
 import { logInfo, logError } from "../utils/logger";
 
@@ -48,19 +48,19 @@ export async function extractTimetable(
     if (useAgenticWorkflow) {
       // Use intelligent agent-based extraction (default)
       logInfo("Starting intelligent agent-based structuring");
-      const agentResult = await intelligentExtraction(
-        'ocr',
-        filePath
-      );
+      // const agentResult = await intelligentExtraction(
+      //   'ocr',
+      //   filePath
+      // );
 
-      timetableData = agentResult;
-      confidence = agentResult.metadata?.enhancedConfidence || 85;
+      // timetableData = agentResult;
+      // confidence = agentResult.metadata?.enhancedConfidence || 85;
 
-      logInfo("Agent-based extraction completed", {
-        mode: agentResult.metadata?.extractionMode,
-        toolsUsed: agentResult.metadata?.agentToolsUsed,
-        confidence,
-      });
+      // logInfo("Agent-based extraction completed", {
+      //   mode: agentResult.metadata?.extractionMode,
+      //   toolsUsed: agentResult.metadata?.agentToolsUsed,
+      //   confidence,
+      // });
     } else {
       // Step 1: Extract text based on file type
       if (isImageFile(mimeType)) {
