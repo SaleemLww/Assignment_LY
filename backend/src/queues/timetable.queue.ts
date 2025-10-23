@@ -23,8 +23,7 @@
  *    from the author.
  * 
  * 3. LEARNING YOGI ASSIGNMENT: This Software was created specifically for the
- *    Learning Yogi (LY) assignment purpose and should be used as a reference
- *    or learning material only.
+ *    Learning Yogi (LY) assignment purpose and should be used as a reference.
  * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
