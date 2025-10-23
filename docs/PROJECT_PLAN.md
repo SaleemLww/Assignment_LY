@@ -627,24 +627,12 @@
 
 ## 🎓 AI Tools Usage Plan
 
-### GitHub Copilot
-- Code completion for boilerplate
-- Test case generation
-- Documentation writing
-- Refactoring suggestions
-
 ### ChatGPT/Claude
 - Architecture planning
 - Problem-solving
 - Prompt engineering
 - Code review
 - Documentation review
-
-### Cursor/Windsurf
-- Multi-file editing
-- Codebase navigation
-- Refactoring assistance
-- Bug fixing
 
 ### LangChain/LlamaIndex
 - LLM orchestration
@@ -657,6 +645,24 @@
 - Debugging LLM calls
 - Performance monitoring
 - Prompt optimization
+
+### GitHub Copilot
+- Code completion for boilerplate
+- Test case generation
+- Documentation writing
+- Refactoring suggestions
+
+### Cursor/Windsurf
+- Multi-file editing
+- Codebase navigation
+- Refactoring assistance
+- Bug fixing
+
+### Mermaid
+- Architecture diagrams
+- Sequence diagrams
+- Flowcharts
+- Database schema visualization
 
 ---
 

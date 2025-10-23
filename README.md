@@ -612,11 +612,12 @@ For questions or issues, please create a GitHub issue or contact the development
 ## 🎓 AI Tools Used
 
 This project leverages AI-powered development tools for enhanced productivity:
-- **GitHub Copilot**: Code completion and suggestions
+- **Mermaid**: Diagram generation for architecture planning
 - **ChatGPT/Claude**: Architecture planning and problem-solving
 - **Cursor/Windsurf**: AI-assisted code editing
 - **LangChain/LlamaIndex**: LLM orchestration frameworks
 - **LangSmith**: LLM debugging and monitoring
+- **GitHub Copilot**: AI-assisted code editing,suggestions, testing and documentation
 
 ---
 

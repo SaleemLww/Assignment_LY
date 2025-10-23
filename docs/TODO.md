@@ -849,17 +849,6 @@
 - [ ] Log location and format
 - [ ] How to report bugs
 
-### AI Tools Usage Documentation
-- [ ] Create `docs/AI_TOOLS_USAGE.md`
-- [ ] Document how AI tools were used:
-  - [ ] GitHub Copilot usage
-  - [ ] ChatGPT/Claude usage
-  - [ ] Cursor/Windsurf usage
-  - [ ] Specific examples
-  - [ ] Productivity gains
-  - [ ] Challenges faced
-- [ ] Document prompts used
-- [ ] Document iterations
 
 ### Code Quality
 - [ ] Run ESLint and fix issues
