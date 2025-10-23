@@ -25,7 +25,7 @@ An intelligent platform that enables teachers to upload their weekly class timet
 ### � Repository
 ```bash
 git clone git@github.com:SaleemLww/Assignment_LY.git
-cd Assignment_LY/TA_Assignment_Pack
+cd Assignment_LY/
 ```
 
 ## 📚 Documentation
