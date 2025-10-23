@@ -414,54 +414,110 @@ npm run test:e2e
 ## 🏗️ Project Structure
 
 ```
-TA_Assignment_Pack/
-├── backend/
+Assignment_LY/
+├── backend/                          # Backend API Server
 │   ├── src/
-│   │   ├── config/          # Configuration files
-│   │   ├── controllers/     # Request handlers
-│   │   ├── services/        # Business logic
-│   │   │   ├── extraction/  # Document extraction services
-│   │   │   ├── llm/         # LLM integration
-│   │   │   └── ocr/         # OCR services
-│   │   ├── models/          # Database models
-│   │   ├── routes/          # API routes
-│   │   ├── middleware/      # Express middleware
-│   │   ├── utils/           # Utility functions
-│   │   ├── types/           # TypeScript types
-│   │   ├── validators/      # Input validation
-│   │   └── app.ts           # Express app setup
-│   ├── tests/               # Test files
-│   ├── uploads/             # Temporary file storage
-│   ├── prisma/              # Database schema & migrations
-│   ├── Dockerfile
-│   ├── package.json
-│   └── tsconfig.json
-├── frontend/
+│   │   ├── app.ts                   # Express app configuration
+│   │   ├── server.ts                # Server entry point
+│   │   ├── config/                  # Configuration files (env, redis)
+│   │   ├── controllers/             # Request handlers (upload, timetable)
+│   │   ├── services/                # Business logic
+│   │   │   ├── ocr.service.ts       # OCR with OpenAI/Google Vision/Tesseract
+│   │   │   ├── pdf.service.ts       # PDF extraction with AI
+│   │   │   ├── docx.service.ts      # DOCX extraction with AI
+│   │   │   ├── llm.service.ts       # LLM integration with LangChain
+│   │   │   ├── extraction.service.ts # Unified extraction orchestrator
+│   │   │   ├── embedding.service.ts  # Vector embeddings
+│   │   │   ├── database.service.ts   # Prisma database operations
+│   │   │   ├── simple-vector-store.ts # Vector storage
+│   │   │   └── prompts/             # AI prompts
+│   │   ├── routes/                  # API routes (upload, timetable)
+│   │   ├── queues/                  # BullMQ job queue & worker
+│   │   ├── middleware/              # Express middleware (upload)
+│   │   ├── docs/                    # Swagger/OpenAPI config
+│   │   ├── types/                   # TypeScript type definitions
+│   │   └── utils/                   # Utility functions (logger)
+│   ├── tests/                       # Real API integration tests
+│   │   ├── integration/             # API, AI services, queue tests
+│   │   ├── unit/                    # Unit tests (empty - future)
+│   │   ├── fixtures/                # Test fixtures
+│   │   ├── helpers/                 # Test helpers
+│   │   └── README.md                # Test documentation
+│   ├── prisma/                      # Prisma ORM
+│   │   ├── schema.prisma            # Database schema
+│   │   └── migrations/              # Database migrations
+│   ├── uploads/                     # Temporary file storage
+│   ├── logs/                        # Application logs
+│   ├── Dockerfile                   # Production Docker image
+│   ├── Dockerfile.dev               # Development Docker image
+│   ├── .dockerignore                # Docker ignore rules
+│   ├── package.json                 # Dependencies & scripts
+│   ├── tsconfig.json                # TypeScript configuration
+│   ├── jest.config.js               # Jest test configuration
+│   └── nodemon.json                 # Nodemon configuration
+│
+├── frontend/                         # React Frontend App
 │   ├── src/
-│   │   ├── app/             # Next.js app directory
-│   │   ├── components/      # React components
-│   │   │   ├── ui/          # Reusable UI components
-│   │   │   ├── timetable/   # Timetable-specific components
-│   │   │   └── layout/      # Layout components
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── lib/             # Utilities & configurations
-│   │   ├── services/        # API service layer
-│   │   ├── store/           # State management
-│   │   └── types/           # TypeScript types
-│   ├── public/              # Static assets
-│   ├── Dockerfile
-│   ├── package.json
-│   └── tailwind.config.ts
-├── docs/
-│   ├── architecture/        # Architecture diagrams
-│   ├── api/                 # API documentation
-│   └── deployment/          # Deployment guides
-├── .github/
-│   └── workflows/           # CI/CD workflows
-├── docker-compose.yml
-├── REQUIREMENTS.md
-├── PROJECT_PLAN.md
-└── README.md
+│   │   ├── App.tsx                  # Main app component
+│   │   ├── main.tsx                 # Entry point
+│   │   ├── components/              # React components
+│   │   │   ├── FileUpload.tsx       # File upload with drag-drop
+│   │   │   └── ProcessingStatus.tsx # Real-time status display
+│   │   ├── pages/                   # Page components
+│   │   │   ├── HomePage.tsx         # Landing page with upload
+│   │   │   ├── TimetablesListPage.tsx # List all timetables
+│   │   │   └── TimetableDetailPage.tsx # View timetable details
+│   │   ├── services/                # API client
+│   │   │   └── api.ts               # Axios API service
+│   │   ├── __tests__/               # Frontend tests
+│   │   │   └── README.md            # Test setup guide
+│   │   └── index.css                # Global styles
+│   ├── public/                      # Static assets
+│   ├── Dockerfile                   # Production Docker image (Nginx)
+│   ├── Dockerfile.dev               # Development Docker image
+│   ├── .dockerignore                # Docker ignore rules
+│   ├── nginx.conf                   # Nginx configuration
+│   ├── package.json                 # Dependencies & scripts
+│   ├── vite.config.ts               # Vite configuration
+│   ├── tailwind.config.js           # Tailwind CSS config
+│   ├── postcss.config.js            # PostCSS configuration
+│   ├── tsconfig.json                # TypeScript configuration
+│   └── index.html                   # HTML template
+│
+├── docs/                             # Documentation
+│   ├── ARCHITECTURE.md              # System architecture (1000+ lines)
+│   ├── REQUIREMENTS.md              # Project requirements
+│   ├── PROJECT_PLAN.md              # Development roadmap
+│   ├── PLANED_ARCHITECTURE.md       # Initial architecture
+│   ├── FRONTEND_STRATEGY.md         # Frontend implementation guide
+│   ├── TODO.md                      # Task tracking (95% complete)
+│   ├── PROGRESS_REPORT.md           # Current progress & achievements
+│   ├── QUICK_REFERENCE.md           # Navigation guide
+│   ├── SERVER_MANAGEMENT.md         # Server management guide
+│   └── DOCKER_DEPLOYMENT.md         # Docker deployment guide
+│
+├── TA_Assignment_Pack/               # Assignment files
+│   └── examples/                    # Sample timetable files
+│       ├── Teacher Timetable Example 1.1.png
+│       ├── Teacher Timetable Example 1.2.png
+│       ├── Teacher Timetable Example 2.pdf
+│       ├── Teacher Timetable Example 3.png
+│       └── Teacher Timetable Example 4.jpeg
+│
+├── sampleJson/                       # Sample JSON data
+│
+├── .env                              # Environment variables (not in git)
+├── .env.example                      # Environment template
+├── .env.docker.example               # Docker environment template
+├── .gitignore                        # Git ignore rules
+├── .gitattributes                    # Git attributes
+├── LICENSE                           # MIT License (Non-Commercial)
+├── README.md                         # This file
+├── docker-compose.yml                # Production Docker setup
+├── docker-compose.dev.yml            # Development Docker setup
+├── docker-start.sh                   # Docker quick start script
+├── start-servers.sh                  # macOS server start script
+└── stop-servers.sh                   # macOS server stop script
 ```
 
 ## 🔧 Development Workflow
