@@ -1,30 +1,30 @@
 /**
  * Teacher Timetable Extraction System
- * 
+ *
  * @author Saleem Ahmad
  * @email saleem.ahmad@rediffmail.com
  * @created October 2025
- * 
+ *
  * @license MIT License (Non-Commercial Use Only)
- * 
+ *
  * Copyright (c) 2025 Saleem Ahmad
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to use
  * the Software for educational, learning, and personal purposes only, subject
  * to the following conditions:
- * 
+ *
  * 1. The above copyright notice and this permission notice shall be included in
  *    all copies or substantial portions of the Software.
- * 
+ *
  * 2. COMMERCIAL USE RESTRICTION: The Software may NOT be used for commercial
  *    purposes, including but not limited to selling, licensing, or incorporating
  *    into commercial products or services, without explicit written permission
  *    from the author.
- * 
+ *
  * 3. LEARNING YOGI ASSIGNMENT: This Software was created specifically for the
  *    Learning Yogi (LY) assignment purpose and should be used as a reference.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,10 +32,9 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- * 
+ *
  * For commercial use inquiries, please contact: saleem.ahmad@rediffmail.com
  */
-
 
 import Tesseract from "tesseract.js";
 import sharp from "sharp";
@@ -61,7 +60,7 @@ export interface OCRResult {
   text: string;
   confidence: number;
   processingTime: number;
-  method: "openai-vision" | "google-vision" | "tesseract";
+  method: "openai-vision" | "google-vision" | "deepseek-vision" | "tesseract";
 }
 
 // buildTimetableOCRPrompt is now imported from shared prompts module
@@ -148,6 +147,94 @@ async function extractWithOpenAIVision(
     };
   } catch (error) {
     logError("❌ OpenAI Vision extraction failed", error);
+    throw error;
+  }
+}
+
+/**
+ * Extract text using Deepseek Vision API
+ * Best for: Advanced AI analysis, cost-effective vision processing
+ */
+async function extractWithDeepseek(
+  imagePath: string
+): Promise<Omit<OCRResult, "processingTime">> {
+  try {
+    logInfo("🧠 Attempting OCR with Deepseek Vision API");
+
+    if (!config.env.DEEPSEEK_API_KEY) {
+      throw new Error("Deepseek API key not configured");
+    }
+
+    // Read image as base64
+    const imageBuffer = await fs.readFile(imagePath);
+    const base64Image = imageBuffer.toString("base64");
+    const mimeType = imagePath.toLowerCase().endsWith(".png")
+      ? "image/png"
+      : "image/jpeg";
+
+    // Advanced timetable-aware OCR prompt (shared with other vision APIs)
+    const ocrPrompt = buildTimetableOCRPrompt();
+
+    // Call Deepseek Vision API
+    const response = await fetch(
+      "https://api.deepseek.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${config.env.DEEPSEEK_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-vl",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: ocrPrompt,
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:${mimeType};base64,${base64Image}`,
+                  },
+                },
+              ],
+            },
+          ],
+          max_tokens: 2000,
+          temperature: 0, // Zero temperature for deterministic extraction
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Deepseek Vision API error (${response.status}): ${errorText}`
+      );
+    }
+
+    const data: any = await response.json();
+    const extractedText = data.choices?.[0]?.message?.content?.trim() || "";
+
+    if (!extractedText || extractedText.length < 10) {
+      throw new Error("Deepseek Vision returned insufficient text");
+    }
+
+    logInfo("✅ Deepseek Vision extraction successful", {
+      textLength: extractedText.length,
+      tokensUsed: data.usage?.total_tokens || 0,
+    });
+
+    return {
+      text: extractedText,
+      confidence: 92, // Deepseek Vision typically has 92%+ accuracy
+      method: "deepseek-vision" as any, // Adding new method type
+    };
+  } catch (error) {
+    logError("❌ Deepseek Vision extraction failed", error);
     throw error;
   }
 }
@@ -291,8 +378,9 @@ async function extractWithTesseract(
  *
  * Extraction Priority:
  * 1. OpenAI Vision API (GPT-4 Vision) - Highest quality, best for complex layouts
- * 2. Google Gemini Vision API - High quality, good multilingual support
- * 3. Tesseract.js with preprocessing - Reliable fallback, free
+ * 2. Deepseek Vision API - Advanced AI analysis, cost-effective vision processing
+ * 3. Google Gemini Vision API - High quality, good multilingual support
+ * 4. Tesseract.js with preprocessing - Reliable fallback, free
  *
  * @param imagePath - Absolute path to the image file
  * @returns OCRResult with extracted text, confidence score, processing time, and method used
@@ -307,32 +395,67 @@ export async function extractTextFromImage(
 
     let result: Omit<OCRResult, "processingTime">;
 
-    // Try OpenAI Vision first (best quality)
-    if (config.env.OPENAI_API_KEY) {
-      try {
-        result = await extractWithOpenAIVision(imagePath);
-        const processingTime = Date.now() - startTime;
-        logInfo(`✨ OCR completed in ${processingTime}ms using OpenAI Vision`);
-        return { ...result, processingTime };
-      } catch (error) {
-        logWarn("⚠️ OpenAI Vision failed, trying Google Vision", error);
-      }
-    } else {
-      logWarn("⚠️ OpenAI API key not configured, skipping OpenAI Vision");
-    }
-
-    // Try Google Vision as second option
-    if (config.env.GOOGLE_API_KEY) {
-      try {
-        result = await extractWithGoogleVision(imagePath);
-        const processingTime = Date.now() - startTime;
-        logInfo(`✨ OCR completed in ${processingTime}ms using Google Vision`);
-        return { ...result, processingTime };
-      } catch (error) {
-        logWarn("⚠️ Google Vision failed, falling back to Tesseract", error);
-      }
-    } else {
-      logWarn("⚠️ Google API key not configured, skipping Google Vision");
+    switch (config.env.WHICH_OCR_KEY) {
+      case "OPENAI_API_KEY":
+        // Try OpenAI Vision first (best quality)
+        if (config.env.OPENAI_API_KEY) {
+          try {
+            result = await extractWithOpenAIVision(imagePath);
+            const processingTime = Date.now() - startTime;
+            logInfo(
+              `✨ OCR completed in ${processingTime}ms using OpenAI Vision`
+            );
+            return { ...result, processingTime };
+          } catch (error) {
+            logWarn("⚠️ OpenAI Vision failed, trying Deepseek Vision", error);
+          }
+        } else {
+          logWarn("⚠️ OpenAI API key not configured, skipping OpenAI Vision");
+        }
+        break;
+      case "DEEPSEEK_API_KEY":
+        // Try Deepseek Vision as second option (cost-effective)
+        if (config.env.DEEPSEEK_API_KEY) {
+          try {
+            result = await extractWithDeepseek(imagePath);
+            const processingTime = Date.now() - startTime;
+            logInfo(
+              `✨ OCR completed in ${processingTime}ms using Deepseek Vision`
+            );
+            return { ...result, processingTime };
+          } catch (error) {
+            logWarn("⚠️ Deepseek Vision failed, trying Google Vision", error);
+          }
+        } else {
+          logWarn(
+            "⚠️ Deepseek API key not configured, skipping Deepseek Vision"
+          );
+        }
+        break;
+      case "GOOGLE_API_KEY":
+        // Try Google Vision as third option
+        if (config.env.GOOGLE_API_KEY) {
+          try {
+            result = await extractWithGoogleVision(imagePath);
+            const processingTime = Date.now() - startTime;
+            logInfo(
+              `✨ OCR completed in ${processingTime}ms using Google Vision`
+            );
+            return { ...result, processingTime };
+          } catch (error) {
+            logWarn(
+              "⚠️ Google Vision failed, falling back to Tesseract",
+              error
+            );
+          }
+        } else {
+          logWarn("⚠️ Google API key not configured, skipping Google Vision");
+        }
+        break;
+      default:
+        logWarn(
+          "⚠️ WHICH_OCR_KEY not set or unrecognized, defaulting to Tesseract "
+        );
     }
 
     // Fallback to Tesseract (always available)

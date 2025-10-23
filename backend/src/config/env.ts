@@ -54,6 +54,8 @@ interface EnvironmentConfig {
   OPENAI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
   GOOGLE_API_KEY?: string;
+  DEEPSEEK_API_KEY?: string;
+  WHICH_OCR_KEY?: string;
   LANGCHAIN_TRACING_V2?: string;
   LANGCHAIN_API_KEY?: string;
   LANGCHAIN_PROJECT?: string;
@@ -85,6 +87,8 @@ class Config {
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
       GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+      DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY,
+      WHICH_OCR_KEY: process.env.WHICH_OCR_KEY,
       LANGCHAIN_TRACING_V2: process.env.LANGCHAIN_TRACING_V2,
       LANGCHAIN_API_KEY: process.env.LANGCHAIN_API_KEY,
       LANGCHAIN_PROJECT: process.env.LANGCHAIN_PROJECT,
