@@ -5,6 +5,8 @@
 > **Created**: October 2025  
 > **Last Updated**: October 24, 2025
 
+> ⚠️ **Development Note**: This documentation represents the results of a **2-day rapid development cycle** for the Learning Yogi assignment. The prompt strategies and extraction accuracy can be significantly improved with additional optimization and testing. Current results are under active observation and refinement. This serves as a foundation for further enhancements.
+
 ## 📋 Table of Contents
 
 1. [Overview](#overview)

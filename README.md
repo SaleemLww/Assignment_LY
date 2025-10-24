@@ -855,4 +855,22 @@ This project leverages AI-powered development tools for enhanced productivity:
 
 ---
 
-**Built with ❤️ for Learning Yogi Technical Assessment by Saleem Ahmad **
+## ⚠️ Development Timeline & Status
+
+**Important Note**: This project was developed as part of the Learning Yogi technical assessment within a **2-day rapid development cycle**. While the core functionality is operational and demonstrates the technical capabilities, there is significant room for improvement in:
+
+- **Extraction Accuracy**: Current prompt strategies achieve good results but can be further optimized
+- **Error Handling**: Additional edge cases and validation rules can be implemented
+- **Performance**: Token optimization and caching strategies can be enhanced
+- **Testing**: Comprehensive unit and integration tests are planned
+- **UI/UX**: Frontend components can be refined for better user experience
+
+**Current Status**: ✅ **Functional MVP** | 🔄 **Results Under Active Observation**
+
+The system successfully processes timetable images/PDFs/DOCX and extracts structured data, but continuous monitoring and refinement are ongoing. This serves as a solid foundation for future enhancements and production-ready improvements.
+
+For detailed prompt engineering strategies and improvement roadmap, see [PROMPT_STRATEGIES.md](./docs/PROMPT_STRATEGIES.md).
+
+---
+
+**Built with ❤️ for Learning Yogi Technical Assessment by Saleem Ahmad**
