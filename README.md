@@ -15,12 +15,39 @@ An intelligent platform that enables teachers to upload their weekly class timet
 ### Key Features
 - 📄 Image upload support (PNG, JPEG) with AI-powered extraction
 - 🤖 AI-powered data extraction using OpenAI Vision API + LangChain
-- 📊 Intelligent OCR with cascading fallbacks (OpenAI → Google Gemini → Tesseract)
-- 🎨 Beautiful, responsive timetable display with multiple view modes
+- 📊 Intelligent OCR with cascading fallbacks (OpenAI → Deepseek* → Google Cloud Vision → Tesseract)
+- 🎨 Beautiful, responsive timetable display with multiple view modes (Daily/Weekly/Monthly Calendar)
 - ⚡ Real-time processing with progress tracking via BullMQ
 - 🔄 Edit and refine extracted data
 - 📱 Mobile-friendly interface
 - 🚧 **Coming Soon**: PDF & DOCX support with LangGraph intelligent agent workflow
+
+> *Note: Deepseek Vision API integration is ready but the public API endpoint is not yet available. Use OpenAI or Google Cloud Vision in the meantime.
+
+### 📅 Recent Updates (October 24, 2025)
+
+**Frontend Improvements:**
+- ✨ **Enhanced Calendar Views**: All three view modes now display properly
+  - **Weekly Grid**: Shows all 7 days of the week (Mon-Sun), including empty days
+  - **Monthly Calendar**: Redesigned as proper calendar grid with all 7 days in columns
+  - **Dynamic Titles**: View titles now change based on selected mode (Daily Schedule/Weekly Schedule/Monthly Calendar)
+- 🎯 **Better UX**: Clear visual distinction between days with classes and empty days
+- 📱 **Responsive Design**: Calendar grids adapt to different screen sizes
+
+**OCR & Backend Updates:**
+- 🔧 **OCR Provider Configuration**: Added comprehensive OCR provider support
+  - OpenAI Vision API (✅ Working - Recommended default)
+  - Google Cloud Vision API (✅ Working - Requires billing enabled)
+  - Deepseek Vision API (⚠️ Integration ready, waiting for API release)
+  - Tesseract OCR (✅ Always available as fallback)
+- 🛠️ **Improved Error Handling**: Better error messages for OCR provider issues
+- 📝 **Environment Configuration**: Updated `.env.example` with all OCR options
+- 🔄 **Smart Fallback**: Automatic cascade through available OCR providers
+
+**Documentation:**
+- 📖 **Comprehensive OCR Guide**: Detailed setup instructions for each provider
+- 🔍 **Troubleshooting Section**: Common issues and solutions for OCR configuration
+- 📋 **Configuration Examples**: Clear examples of environment variable setup
 
 ### � Repository
 ```bash
@@ -95,8 +122,121 @@ Before you begin, ensure you have the following installed:
 - Git
 
 ### API Keys Required
-- OpenAI API Key or Anthropic Claude API Key
-- (Optional) Google Cloud Vision API Key for enhanced OCR
+- OpenAI API Key (for Vision OCR and LLM processing)
+- (Optional) Google Cloud Vision API Service Account JSON
+- (Optional) Deepseek API Key (requires local installation)
+
+## 🔍 OCR Configuration
+
+The system supports multiple OCR providers with intelligent cascading fallback:
+
+### Supported OCR Providers
+
+#### 1. ✅ **OpenAI Vision API** (Recommended - Default)
+- **Status**: ✅ **Working & Production Ready**
+- **Model**: GPT-4o-mini
+- **Confidence**: 95%
+- **Setup**: Add `OPENAI_API_KEY` to `.env`
+- **Priority**: Tier 1 (First choice)
+- **Best For**: High-quality text extraction, complex layouts, handwritten text
+- **Cost**: Pay-per-use via OpenAI
+
+#### 2. ✅ **Google Cloud Vision API**
+- **Status**: ✅ **Working** (Requires Billing Enabled)
+- **API**: Cloud Vision API with `documentTextDetection`
+- **Setup**: 
+  1. Create a Google Cloud project
+  2. Enable Cloud Vision API
+  3. **Enable billing** on your project (required, but has free tier)
+  4. Create a service account and download JSON key
+  5. Add path to JSON in `.env`: `GOOGLE_SERVICE_ACCOUNT_JSON=/path/to/your-service-account.json`
+- **Priority**: Tier 3 (Third choice)
+- **Best For**: Document text detection, multi-language support
+- **Cost**: Free tier available (1,000 units/month), then pay-per-use
+
+> **Important**: Google Cloud Vision requires billing to be enabled even though it has a generous free tier. Without billing enabled, you'll get a `PERMISSION_DENIED` error.
+
+#### 3. ⚠️ **Deepseek Vision API**
+- **Status**: ⚠️ **Not Available via API**
+- **Model**: deepseek-OCR (latest)
+- **Setup**: Code is integrated but API endpoint not yet publicly available
+- **Alternative**: Users can install and run Deepseek locally when available
+- **Priority**: Tier 2 (Would be second choice when available)
+- **Best For**: Cost-effective OCR processing
+- **Note**: Integration ready, waiting for API endpoint release
+
+#### 4. ✅ **Tesseract OCR** (Local Fallback)
+- **Status**: ✅ **Always Available**
+- **Engine**: Tesseract.js (JavaScript port)
+- **Setup**: No configuration needed (bundled with project)
+- **Priority**: Tier 4 (Final fallback)
+- **Best For**: Basic text extraction, offline processing
+- **Cost**: Free and open-source
+
+### OCR Priority Cascade
+
+The system intelligently tries OCR providers in this order:
+
+```
+1. OpenAI Vision (if OPENAI_API_KEY set) 
+   ↓ (if fails or not configured)
+2. Deepseek Vision (if DEEPSEEK_API_KEY set) - Currently unavailable
+   ↓ (if fails or not configured)
+3. Google Cloud Vision (if GOOGLE_SERVICE_ACCOUNT_JSON set & billing enabled)
+   ↓ (if fails or not configured)
+4. Tesseract OCR (always available as final fallback)
+```
+
+### Configuring Your OCR Provider
+
+Set the `WHICH_OCR_KEY` environment variable in `.env` to control which provider is used:
+
+```bash
+# Use OpenAI Vision (Recommended)
+WHICH_OCR_KEY=OPENAI_API_KEY
+
+# Use Deepseek Vision (when available)
+WHICH_OCR_KEY=DEEPSEEK_API_KEY
+
+# Use Google Cloud Vision
+WHICH_OCR_KEY=GOOGLE_API_KEY
+
+# Or leave empty to use default cascade
+```
+
+### Required Environment Variables for OCR
+
+```bash
+# OpenAI (Recommended - Default)
+OPENAI_API_KEY=sk-proj-your-api-key-here
+
+# Google Cloud Vision (Optional)
+GOOGLE_SERVICE_ACCOUNT_JSON=/path/to/service-account-key.json
+
+# Deepseek (Optional - Not yet available)
+DEEPSEEK_API_KEY=your-deepseek-key-when-available
+
+# Control which OCR to use
+WHICH_OCR_KEY=OPENAI_API_KEY
+```
+
+### Troubleshooting OCR Issues
+
+**Google Vision "PERMISSION_DENIED" Error:**
+```
+Error: 7 PERMISSION_DENIED: This API method requires billing to be enabled.
+```
+**Solution**: Enable billing on your Google Cloud project at https://console.developers.google.com/billing/enable?project=YOUR_PROJECT_ID
+
+**OpenAI API Errors:**
+- Check your API key is valid
+- Ensure you have credits in your OpenAI account
+- Verify your API key has access to GPT-4 Vision models
+
+**Deepseek Not Working:**
+- This is expected - the API endpoint is not yet publicly available
+- The integration code is ready for when the API becomes available
+- Users can install Deepseek locally when it's released
 
 ## 🚀 Quick Start
 
@@ -373,10 +513,13 @@ http://localhost:3000
 
 ### Main Features
 1. **Upload Page**: Drag & drop or click to upload timetable files
-2. **Processing View**: Real-time progress tracking
-3. **Timetable View**: Beautiful grid display with color coding
-4. **Edit Mode**: Modify extracted data inline
-5. **Export Options**: Download as PDF, Excel, or iCal
+2. **Processing View**: Real-time progress tracking with job status
+3. **Timetable View**: Three display modes available:
+   - **Daily View**: Detailed single-day schedule with all class information
+   - **Weekly View**: Traditional 7-day grid showing all days (Mon-Sun) with time slots
+   - **Monthly Calendar**: Calendar-style grid layout with all 7 days, showing events per day
+4. **Edit Mode**: Modify extracted data inline (coming soon)
+5. **Export Options**: Download as PDF, Excel, or iCal (coming soon)
 
 ## 🧪 Testing
 
@@ -577,9 +720,41 @@ redis-cli ping
 - Verify file format is supported
 
 #### 4. OCR Not Working
-- Verify Tesseract is installed: `tesseract --version`
-- Check Google Cloud Vision API key if using cloud OCR
-- Review OCR service logs
+
+**OpenAI Vision Issues:**
+- Verify `OPENAI_API_KEY` is set in `.env`
+- Check you have credits in your OpenAI account
+- Ensure API key has access to GPT-4 Vision models
+- Check backend logs for specific error messages
+
+**Google Cloud Vision Issues:**
+- **"PERMISSION_DENIED" error**: Enable billing on your Google Cloud project
+- Verify `GOOGLE_SERVICE_ACCOUNT_JSON` path is correct in `.env`
+- Ensure the service account JSON file exists and is readable
+- Check the service account has "Cloud Vision API User" role
+- Verify Cloud Vision API is enabled in your project
+
+**Deepseek Vision Issues:**
+- This is expected - API endpoint not yet publicly available
+- Integration code is ready but waiting for API release
+- For now, use OpenAI or Google Cloud Vision
+
+**Tesseract Fallback:**
+- Tesseract is always available as final fallback
+- No configuration needed (bundled with project)
+- Check backend logs if text extraction seems poor
+
+**Debug Steps:**
+```bash
+# Check which OCR provider is configured
+grep WHICH_OCR_KEY .env
+
+# View real-time logs
+npm run dev  # in backend terminal, watch for OCR-related messages
+
+# Test with a simple clear image first
+# Complex handwritten or low-quality images may need OpenAI Vision
+```
 
 #### 5. LLM API Errors
 - Verify API key is set correctly
