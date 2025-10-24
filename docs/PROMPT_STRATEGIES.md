@@ -45,112 +45,63 @@ The Teacher Timetable Extraction System employs a **sophisticated two-stage prom
 
 ## System Architecture & Data Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    USER UPLOADS FILE                                 │
-│              (Image / PDF / DOCX)                                   │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                 STAGE 1: OCR EXTRACTION                             │
-│                                                                      │
-│  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐       │
-│  │  Image File  │     │   PDF File   │     │  DOCX File   │       │
-│  └──────┬───────┘     └──────┬───────┘     └──────┬───────┘       │
-│         │                    │                    │                 │
-│         ▼                    ▼                    ▼                 │
-│  ┌──────────────────────────────────────────────────────┐          │
-│  │  Convert to Base64 Image(s)                          │          │
-│  └──────────────────────────────────────────────────────┘          │
-│         │                                                            │
-│         ▼                                                            │
-│  ┌──────────────────────────────────────────────────────┐          │
-│  │  OCR PROMPT: buildTimetableOCRPrompt()               │          │
-│  │  (Detailed table extraction instructions)            │          │
-│  └──────────────────────────────────────────────────────┘          │
-│         │                                                            │
-│         ▼                                                            │
-│  ┌──────────────────────────────────────────────────────┐          │
-│  │  Vision API Call (Cascading Priority):               │          │
-│  │  1. OpenAI Vision (GPT-4o-mini) ✅                   │          │
-│  │  2. Deepseek Vision (deepseek-vl2) ⚠️ Not yet available │      │
-│  │  3. Google Cloud Vision ✅                           │          │
-│  │  4. Tesseract.js (fallback) ✅                       │          │
-│  └──────────────────────────────────────────────────────┘          │
-│         │                                                            │
-│         ▼                                                            │
-│  ┌──────────────────────────────────────────────────────┐          │
-│  │  RAW EXTRACTED TEXT                                   │          │
-│  │  (Structure preserved, all text visible)              │          │
-│  └──────────────────────────────────────────────────────┘          │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│         STAGE 2: DATA STRUCTURING & VALIDATION                      │
-│                                                                      │
-│  ┌──────────────────────────────────────────────────────┐          │
-│  │  Text Length Check (>2000 chars?)                    │          │
-│  └──────────────┬───────────────────────────────────────┘          │
-│                 │                                                    │
-│         ┌───────┴────────┐                                          │
-│         │                │                                          │
-│    YES  │                │  NO                                      │
-│         ▼                ▼                                          │
-│  ┌──────────────┐  ┌──────────────┐                               │
-│  │ Embeddings   │  │ Use Full     │                               │
-│  │ Optimization │  │ Text         │                               │
-│  │              │  │              │                               │
-│  │ 1. Chunk     │  └──────────────┘                               │
-│  │    text      │         │                                        │
-│  │ 2. Embed     │         │                                        │
-│  │    chunks    │         │                                        │
-│  │ 3. Query     │         │                                        │
-│  │    relevant  │         │                                        │
-│  │ 4. Reduce    │         │                                        │
-│  │    tokens    │         │                                        │
-│  └──────┬───────┘         │                                        │
-│         │                 │                                        │
-│         └────────┬────────┘                                        │
-│                  ▼                                                  │
-│  ┌──────────────────────────────────────────────────────┐         │
-│  │  LLM STRUCTURING PROMPT                              │         │
-│  │  (Data Extraction & Normalization Agent)             │         │
-│  └──────────────────────────────────────────────────────┘         │
-│                  │                                                  │
-│                  ▼                                                  │
-│  ┌──────────────────────────────────────────────────────┐         │
-│  │  LLM Call: GPT-4o-mini / Claude                      │         │
-│  │  with Structured Output (Zod Schema)                 │         │
-│  └──────────────────────────────────────────────────────┘         │
-│                  │                                                  │
-│                  ▼                                                  │
-│  ┌──────────────────────────────────────────────────────┐         │
-│  │  STRUCTURED JSON OUTPUT                              │         │
-│  │  {                                                    │         │
-│  │    teacherName: "...",                               │         │
-│  │    timeBlocks: [...],                                │         │
-│  │    academicYear: "...",                              │         │
-│  │    semester: "..."                                   │         │
-│  │  }                                                    │         │
-│  └──────────────────────────────────────────────────────┘         │
-│                  │                                                  │
-│                  ▼                                                  │
-│  ┌──────────────────────────────────────────────────────┐         │
-│  │  VALIDATION LAYER                                    │         │
-│  │  • Zod schema validation                             │         │
-│  │  • Time overlap detection                            │         │
-│  │  • Duplicate removal                                 │         │
-│  │  • Confidence scoring                                │         │
-│  └──────────────────────────────────────────────────────┘         │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    DATABASE STORAGE                                 │
-│           (PostgreSQL with Prisma ORM)                              │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Start([User Uploads File<br/>Image / PDF / DOCX]) --> Stage1[STAGE 1: OCR EXTRACTION]
+    
+    Stage1 --> FileType{File Type?}
+    FileType -->|Image| ImageFile[Image File]
+    FileType -->|PDF| PDFFile[PDF File]
+    FileType -->|DOCX| DOCXFile[DOCX File]
+    
+    ImageFile --> Convert[Convert to Base64 Image]
+    PDFFile --> Convert
+    DOCXFile --> Convert
+    
+    Convert --> OCRPrompt[OCR PROMPT:<br/>buildTimetableOCRPrompt<br/>Detailed table extraction instructions]
+    
+    OCRPrompt --> VisionAPI[Vision API Call<br/>Cascading Priority]
+    
+    VisionAPI --> OpenAI{1. OpenAI Vision<br/>GPT-4o-mini ✅}
+    OpenAI -->|Success| RawText[RAW EXTRACTED TEXT<br/>Structure preserved, all text visible]
+    OpenAI -->|Fail| Deepseek{2. Deepseek Vision<br/>deepseek-vl2 ⚠️<br/>Not yet available}
+    Deepseek -->|Success| RawText
+    Deepseek -->|Fail| Google{3. Google Cloud Vision ✅}
+    Google -->|Success| RawText
+    Google -->|Fail| Tesseract[4. Tesseract.js<br/>Local Fallback ✅]
+    Tesseract --> RawText
+    
+    RawText --> Stage2[STAGE 2: DATA STRUCTURING & VALIDATION]
+    
+    Stage2 --> TextCheck{Text Length<br/>>2000 chars?}
+    
+    TextCheck -->|YES| Embeddings[Embeddings Optimization<br/>1. Chunk text<br/>2. Embed chunks<br/>3. Query relevant<br/>4. Reduce tokens<br/>75% token reduction]
+    TextCheck -->|NO| FullText[Use Full Text]
+    
+    Embeddings --> LLMPrompt[LLM STRUCTURING PROMPT<br/>Data Extraction & Normalization Agent]
+    FullText --> LLMPrompt
+    
+    LLMPrompt --> LLMCall[LLM Call:<br/>GPT-4o-mini / Claude<br/>with Structured Output<br/>Zod Schema]
+    
+    LLMCall --> JSONOutput[STRUCTURED JSON OUTPUT<br/>teacherName: ...<br/>timeBlocks: ...<br/>academicYear: ...<br/>semester: ...]
+    
+    JSONOutput --> Validation[VALIDATION LAYER<br/>• Zod schema validation<br/>• Time overlap detection<br/>• Duplicate removal<br/>• Confidence scoring]
+    
+    Validation --> Database[(DATABASE STORAGE<br/>PostgreSQL with Prisma ORM)]
+    
+    Database --> End([Timetable Ready<br/>Frontend Display])
+    
+    style Start fill:#e1f5ff
+    style Stage1 fill:#fff4e6
+    style Stage2 fill:#e8f5e9
+    style Database fill:#f3e5f5
+    style End fill:#e1f5ff
+    style OpenAI fill:#d4edda
+    style Google fill:#d4edda
+    style Tesseract fill:#d4edda
+    style Deepseek fill:#fff3cd
+    style RawText fill:#cfe2ff
+    style JSONOutput fill:#cfe2ff
 ```
 
 ### Critical Design Decisions
