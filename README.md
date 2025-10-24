@@ -872,7 +872,7 @@ The system successfully processes timetable images/PDFs/DOCX and extracts struct
 **Future Enhancements & Notes**:
 
 - This system **could be implemented using open-source LLMs** for cost-effectiveness and flexibility.
-- A fully **agentic workflow** using **LangGraph, LangChain, and other modern orchestration libraries** is possible. Due to machine and time limitations during development, this provision has been noted and scaffolded but **not implemented yet**.
+- A fully **agentic workflow** using **LangGraph, and other modern orchestration libraries** is possible. Due to machine and time limitations during development, this provision has been noted and scaffolded but **not implemented yet**.
 - LangGraph-based orchestration has been **planned and partially scaffolded** to allow easy integration in future iterations.
 
 For detailed prompt engineering strategies and improvement roadmap, see [PROMPT_STRATEGIES.md](./docs/PROMPT_STRATEGIES.md).
