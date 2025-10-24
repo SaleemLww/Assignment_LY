@@ -67,6 +67,7 @@ Comprehensive documentation is available in the [`../docs/`](../docs/) folder at
 - **[FRONTEND_STRATEGY.md](./docs/FRONTEND_STRATEGY.md)** - Complete frontend implementation guide with 15+ component specifications
 - **[PROGRESS_REPORT.md](./docs/PROGRESS_REPORT.md)** - Current progress and achievements
 - **[QUICK_REFERENCE.md](./docs/QUICK_REFERENCE.md)** - Quick navigation guide
+- **[PROMPT_STRATEGIES.md](./docs/PROMPT_STRATEGIES.md)** - AI prompt strategies used in the project
 
 ### 🖼️ Example Timetables
 Test timetable files are available in [`./TA_Assignment_Pack/examples/`](./TA_Assignment_Pack/examples/) for development and testing.
