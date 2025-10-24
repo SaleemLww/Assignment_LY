@@ -300,20 +300,31 @@ async function extractWithGoogleVision_old(
 }
 
 
-async function extractWithGoogleVision(imagePath: string): Promise<Omit<OCRResult, "processingTime">> {
+async function extractWithGoogleVision(
+  imagePath: string
+): Promise<Omit<OCRResult, "processingTime">> {
   try {
     logInfo("🤖 Attempting OCR with Google Vision API");
 
-    if (!config.env.GOOGLE_API_KEY) {
-      throw new Error("Google API key not configured");
+    // Ensure the path to service account JSON is set
+    if (!config.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+      throw new Error(
+        "Google Service Account JSON path not configured in GOOGLE_SERVICE_ACCOUNT_JSON"
+      );
     }
 
+    // Initialize Vision client with service account
     const client = new vision.ImageAnnotatorClient({
-      credentials: { apiKey: config.env.GOOGLE_API_KEY } as any,
+      keyFilename: config.env.GOOGLE_SERVICE_ACCOUNT_JSON,
     });
 
+    // Read image
     const imageBuffer = await fs.readFile(imagePath);
-    const [result] = await client.documentTextDetection({ image: { content: imageBuffer } });
+
+    // OCR with documentTextDetection for structured text
+    const [result] = await client.documentTextDetection({
+      image: { content: imageBuffer },
+    });
 
     const extractedText = result.fullTextAnnotation?.text?.trim() || "";
 
@@ -321,11 +332,13 @@ async function extractWithGoogleVision(imagePath: string): Promise<Omit<OCRResul
       throw new Error("Google Vision returned insufficient text");
     }
 
-    logInfo("✅ Google Vision extraction successful", { textLength: extractedText.length });
+    logInfo("✅ Google Vision extraction successful", {
+      textLength: extractedText.length,
+    });
 
     return {
       text: extractedText,
-      confidence: 95,
+      confidence: 95, // Approximate confidence
       method: "google-vision",
     };
   } catch (error) {
@@ -333,6 +346,7 @@ async function extractWithGoogleVision(imagePath: string): Promise<Omit<OCRResul
     throw error;
   }
 }
+
 
 
 /**

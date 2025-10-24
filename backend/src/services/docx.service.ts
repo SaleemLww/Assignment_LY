@@ -279,12 +279,16 @@ async function extractWithGoogleVision(
   try {
     logInfo("🤖 Extracting DOCX images text with Google Vision API");
 
-    if (!config.env.GOOGLE_API_KEY) {
-      throw new Error("Google API key not configured");
+    // Ensure the path to service account JSON is set
+    if (!config.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+      throw new Error(
+        "Google Service Account JSON path not configured in GOOGLE_SERVICE_ACCOUNT_JSON"
+      );
     }
 
+    // Initialize Vision client with service account
     const client = new vision.ImageAnnotatorClient({
-      credentials: { apiKey: config.env.GOOGLE_API_KEY } as any,
+      keyFilename: config.env.GOOGLE_SERVICE_ACCOUNT_JSON,
     });
 
     const extractedTexts: string[] = [];
