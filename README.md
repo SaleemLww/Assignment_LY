@@ -869,6 +869,12 @@ This project leverages AI-powered development tools for enhanced productivity:
 
 The system successfully processes timetable images/PDFs/DOCX and extracts structured data, but continuous monitoring and refinement are ongoing. This serves as a solid foundation for future enhancements and production-ready improvements.
 
+**Future Enhancements & Notes**:
+
+- This system **could be implemented using open-source LLMs** for cost-effectiveness and flexibility.
+- A fully **agentic workflow** using **LangGraph, LangChain, and other modern orchestration libraries** is possible. Due to machine and time limitations during development, this provision has been noted and scaffolded but **not implemented yet**.
+- LangGraph-based orchestration has been **planned and partially scaffolded** to allow easy integration in future iterations.
+
 For detailed prompt engineering strategies and improvement roadmap, see [PROMPT_STRATEGIES.md](./docs/PROMPT_STRATEGIES.md).
 
 ---
