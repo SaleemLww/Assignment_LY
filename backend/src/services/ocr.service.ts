@@ -39,6 +39,7 @@
 import Tesseract from "tesseract.js";
 import sharp from "sharp";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import vision from "@google-cloud/vision";
 import { logInfo, logError, logWarn } from "../utils/logger";
 import { config } from "../config/env";
 import fs from "fs/promises";
@@ -151,6 +152,8 @@ async function extractWithOpenAIVision(
   }
 }
 
+
+
 /**
  * Extract text using Deepseek Vision API
  * Best for: Advanced AI analysis, cost-effective vision processing
@@ -165,49 +168,44 @@ async function extractWithDeepseek(
       throw new Error("Deepseek API key not configured");
     }
 
-    // Read image as base64
+    // Read image as Base64
     const imageBuffer = await fs.readFile(imagePath);
     const base64Image = imageBuffer.toString("base64");
     const mimeType = imagePath.toLowerCase().endsWith(".png")
       ? "image/png"
       : "image/jpeg";
 
-    // Advanced timetable-aware OCR prompt (shared with other vision APIs)
+    // Build your existing OCR prompt
     const ocrPrompt = buildTimetableOCRPrompt();
 
-    // Call Deepseek Vision API
-    const response = await fetch(
-      "https://api.deepseek.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${config.env.DEEPSEEK_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "deepseek-vl",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: ocrPrompt,
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:${mimeType};base64,${base64Image}`,
-                  },
-                },
-              ],
-            },
-          ],
-          max_tokens: 2000,
-          temperature: 0, // Zero temperature for deterministic extraction
-        }),
-      }
-    );
+    // Call DeepSeek Vision API (correct schema)
+    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.env.DEEPSEEK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "deepseek-vl2", // ✅ use lowercase model name
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: ocrPrompt,
+              },
+              {
+                type: "image", // ✅ correct field
+                image: `data:${mimeType};base64,${base64Image}`, // ✅ base64 inline
+              },
+            ],
+          },
+        ],
+        max_tokens: 2000,
+        temperature: 0,
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -230,8 +228,8 @@ async function extractWithDeepseek(
 
     return {
       text: extractedText,
-      confidence: 92, // Deepseek Vision typically has 92%+ accuracy
-      method: "deepseek-vision" as any, // Adding new method type
+      confidence: 92,
+      method: "deepseek-vision" as any,
     };
   } catch (error) {
     logError("❌ Deepseek Vision extraction failed", error);
@@ -239,11 +237,12 @@ async function extractWithDeepseek(
   }
 }
 
+
 /**
  * Extract text using Google Gemini Vision API
  * Best for: High-quality image recognition, multilingual support
  */
-async function extractWithGoogleVision(
+async function extractWithGoogleVision_old(
   imagePath: string
 ): Promise<Omit<OCRResult, "processingTime">> {
   try {
@@ -299,6 +298,42 @@ async function extractWithGoogleVision(
     throw error;
   }
 }
+
+
+async function extractWithGoogleVision(imagePath: string): Promise<Omit<OCRResult, "processingTime">> {
+  try {
+    logInfo("🤖 Attempting OCR with Google Vision API");
+
+    if (!config.env.GOOGLE_API_KEY) {
+      throw new Error("Google API key not configured");
+    }
+
+    const client = new vision.ImageAnnotatorClient({
+      credentials: { apiKey: config.env.GOOGLE_API_KEY } as any,
+    });
+
+    const imageBuffer = await fs.readFile(imagePath);
+    const [result] = await client.documentTextDetection({ image: { content: imageBuffer } });
+
+    const extractedText = result.fullTextAnnotation?.text?.trim() || "";
+
+    if (!extractedText || extractedText.length < 10) {
+      throw new Error("Google Vision returned insufficient text");
+    }
+
+    logInfo("✅ Google Vision extraction successful", { textLength: extractedText.length });
+
+    return {
+      text: extractedText,
+      confidence: 95,
+      method: "google-vision",
+    };
+  } catch (error) {
+    logError("❌ Google Vision extraction failed", error);
+    throw error;
+  }
+}
+
 
 /**
  * Preprocess image to improve OCR accuracy (Tesseract fallback)

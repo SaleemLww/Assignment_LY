@@ -40,6 +40,7 @@ import mammoth from "mammoth";
 import JSZip from "jszip";
 import fs from "fs/promises";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import vision from "@google-cloud/vision";
 import { logInfo, logError, logWarn } from "../utils/logger";
 import { config } from "../config/env";
 import { buildDOCXImageExtractionPrompt } from "./prompts/ocr.prompts";
@@ -177,7 +178,7 @@ async function extractWithDeepseekVision(
             Authorization: `Bearer ${config.env.DEEPSEEK_API_KEY}`,
           },
           body: JSON.stringify({
-            model: "deepseek-vl",
+            model: "deepseek-vl2", // ✅ use lowercase model name
             messages: [
               {
                 role: "user",
@@ -187,10 +188,8 @@ async function extractWithDeepseekVision(
                     text: prompt,
                   },
                   {
-                    type: "image_url",
-                    image_url: {
-                      url: `data:image/png;base64,${base64Image}`,
-                    },
+                    type: "image", // ✅ correct field
+                    image: `data:image/png;base64,${base64Image}`, // ✅ base64 inline
                   },
                 ],
               },
@@ -223,7 +222,7 @@ async function extractWithDeepseekVision(
 /**
  * Extract text using Google Gemini Vision from DOCX images
  */
-async function extractWithGoogleVision(
+async function extractWithGoogleVision_old(
   imageBuffers: Buffer[]
 ): Promise<string> {
   try {
@@ -266,6 +265,46 @@ async function extractWithGoogleVision(
 
     const fullText = extractedTexts.join("\n\n--- Image Break ---\n\n");
     logInfo("✅ Google Vision DOCX image extraction successful");
+
+    return fullText;
+  } catch (error) {
+    logError("❌ Google Vision DOCX image extraction failed", error);
+    throw error;
+  }
+}
+
+async function extractWithGoogleVision(
+  imageBuffers: Buffer[]
+): Promise<string> {
+  try {
+    logInfo("🤖 Extracting DOCX images text with Google Vision API");
+
+    if (!config.env.GOOGLE_API_KEY) {
+      throw new Error("Google API key not configured");
+    }
+
+    const client = new vision.ImageAnnotatorClient({
+      credentials: { apiKey: config.env.GOOGLE_API_KEY } as any,
+    });
+
+    const extractedTexts: string[] = [];
+
+    // Process each image
+    for (let i = 0; i < imageBuffers.length; i++) {
+      logInfo(`Processing image ${i + 1}/${imageBuffers.length} with Google Vision`);
+
+      const [result] = await client.documentTextDetection({ 
+        image: { content: imageBuffers[i] } 
+      });
+
+      const imageText = result.fullTextAnnotation?.text?.trim() || "";
+      extractedTexts.push(imageText);
+    }
+
+    const fullText = extractedTexts.join("\n\n--- Image Break ---\n\n");
+    logInfo("✅ Google Vision DOCX image extraction successful", {
+      textLength: fullText.length,
+    });
 
     return fullText;
   } catch (error) {

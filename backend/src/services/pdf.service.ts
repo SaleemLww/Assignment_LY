@@ -39,6 +39,7 @@
 import * as pdfParse from "pdf-parse";
 import { pdfToPng } from "pdf-to-png-converter";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import vision from "@google-cloud/vision";
 import fs from "fs/promises";
 import fsSync from "fs";
 import path from "path";
@@ -181,7 +182,7 @@ async function extractWithDeepseekVision(pdfImages: Buffer[]): Promise<string> {
             Authorization: `Bearer ${config.env.DEEPSEEK_API_KEY}`,
           },
           body: JSON.stringify({
-            model: "deepseek-vl",
+            model: "deepseek-vl2", // ✅ use lowercase model name
             messages: [
               {
                 role: "user",
@@ -191,10 +192,8 @@ async function extractWithDeepseekVision(pdfImages: Buffer[]): Promise<string> {
                     text: prompt,
                   },
                   {
-                    type: "image_url",
-                    image_url: {
-                      url: `data:image/png;base64,${base64Image}`,
-                    },
+                    type: "image", // ✅ correct field
+                    image: `data:image/png;base64,${base64Image}`, // ✅ base64 inline
                   },
                 ],
               },
@@ -227,7 +226,7 @@ async function extractWithDeepseekVision(pdfImages: Buffer[]): Promise<string> {
 /**
  * Extract text using Google Gemini Vision from PDF images
  */
-async function extractWithGoogleVision(pdfImages: Buffer[]): Promise<string> {
+async function extractWithGoogleVision_old(pdfImages: Buffer[]): Promise<string> {
   try {
     logInfo("🤖 Extracting PDF text with Google Gemini Vision API");
 
@@ -268,6 +267,44 @@ async function extractWithGoogleVision(pdfImages: Buffer[]): Promise<string> {
 
     const fullText = extractedTexts.join("\n\n--- Page Break ---\n\n");
     logInfo("✅ Google Vision PDF extraction successful");
+
+    return fullText;
+  } catch (error) {
+    logError("❌ Google Vision PDF extraction failed", error);
+    throw error;
+  }
+}
+
+async function extractWithGoogleVision(pdfImages: Buffer[]): Promise<string> {
+  try {
+    logInfo("🤖 Extracting PDF text with Google Vision API");
+
+    if (!config.env.GOOGLE_API_KEY) {
+      throw new Error("Google API key not configured");
+    }
+
+    const client = new vision.ImageAnnotatorClient({
+      credentials: { apiKey: config.env.GOOGLE_API_KEY } as any,
+    });
+
+    const extractedTexts: string[] = [];
+
+    // Process each page
+    for (let i = 0; i < pdfImages.length; i++) {
+      logInfo(`Processing page ${i + 1}/${pdfImages.length} with Google Vision`);
+
+      const [result] = await client.documentTextDetection({ 
+        image: { content: pdfImages[i] } 
+      });
+
+      const pageText = result.fullTextAnnotation?.text?.trim() || "";
+      extractedTexts.push(pageText);
+    }
+
+    const fullText = extractedTexts.join("\n\n--- Page Break ---\n\n");
+    logInfo("✅ Google Vision PDF extraction successful", {
+      textLength: fullText.length,
+    });
 
     return fullText;
   } catch (error) {
