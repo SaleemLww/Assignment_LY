@@ -821,9 +821,6 @@ This project is created for Learning Yogi Technical Assessment.
 
 - [Design Handover Video](https://www.loom.com/share/a7e81713dd0749b7838f4107a00e906e?sid=92b4f509-d609-441a-8c33-0799bc26281c)
 - [OpenAI API Documentation](https://platform.openai.com/docs)
-- [LangChain Documentation](https://js.langchain.com/docs)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Prisma Documentation](https://www.prisma.io/docs)
 
 ## 📞 Support
 
