@@ -443,7 +443,7 @@ export async function extractTextFromImage(
     logInfo(`🚀 Starting AI-powered OCR extraction for: ${imagePath}`);
 
     let result: Omit<OCRResult, "processingTime">;
-
+    console.log("WHICH_OCR_KEY:", config.env.WHICH_OCR_KEY);
     switch (config.env.WHICH_OCR_KEY) {
       case "OPENAI_API_KEY":
         // Try OpenAI Vision first (best quality)

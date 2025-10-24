@@ -99,10 +99,9 @@ export default function TimetableDetailPage() {
     );
   };
 
-  // Render weekly grid view
+  // Render weekly grid view - Shows ALL 7 days of the week
   const renderWeeklyView = () => {
     const timeSlots = getAllTimeSlots();
-    const activeDays = daysOfWeek.filter(day => getTimeBlocksByDay(day).length > 0);
 
     return (
       <div className="overflow-x-auto">
@@ -112,7 +111,7 @@ export default function TimetableDetailPage() {
               <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700 w-32">
                 Time
               </th>
-              {activeDays.map(day => (
+              {daysOfWeek.map(day => (
                 <th key={day} className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700">
                   {formatDayName(day)}
                 </th>
@@ -120,36 +119,44 @@ export default function TimetableDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {timeSlots.map(time => (
-              <tr key={time} className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-3 font-medium text-gray-600 bg-gray-50">
-                  {time}
-                </td>
-                {activeDays.map(day => {
-                  const block = getBlockForDayAndTime(day, time);
-                  return (
-                    <td key={`${day}-${time}`} className="border border-gray-300 px-3 py-2">
-                      {block ? (
-                        <div className="space-y-1">
-                          <div className="font-semibold text-sm text-gray-900">{block.subject}</div>
-                          <div className="text-xs text-gray-600">
-                            {block.startTime} - {block.endTime}
+            {timeSlots.length > 0 ? (
+              timeSlots.map(time => (
+                <tr key={time} className="hover:bg-gray-50">
+                  <td className="border border-gray-300 px-4 py-3 font-medium text-gray-600 bg-gray-50">
+                    {time}
+                  </td>
+                  {daysOfWeek.map(day => {
+                    const block = getBlockForDayAndTime(day, time);
+                    return (
+                      <td key={`${day}-${time}`} className="border border-gray-300 px-3 py-2">
+                        {block ? (
+                          <div className="space-y-1">
+                            <div className="font-semibold text-sm text-gray-900">{block.subject}</div>
+                            <div className="text-xs text-gray-600">
+                              {block.startTime} - {block.endTime}
+                            </div>
+                            {block.classroom && (
+                              <div className="text-xs text-gray-500">📍 {block.classroom}</div>
+                            )}
+                            {block.grade && (
+                              <div className="text-xs text-gray-500">📚 Grade {block.grade} {block.section}</div>
+                            )}
                           </div>
-                          {block.classroom && (
-                            <div className="text-xs text-gray-500">📍 {block.classroom}</div>
-                          )}
-                          {block.grade && (
-                            <div className="text-xs text-gray-500">📚 Grade {block.grade} {block.section}</div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-gray-300 text-xs">—</div>
-                      )}
-                    </td>
-                  );
-                })}
+                        ) : (
+                          <div className="text-gray-300 text-xs text-center py-4">—</div>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={8} className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                  No time blocks available
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -197,32 +204,62 @@ export default function TimetableDetailPage() {
     );
   };
 
-  // Render monthly view (all days in cards)
+  // Render monthly view (calendar-like grid with all days of the week)
   const renderMonthlyView = () => {
-    const activeDays = daysOfWeek.filter(day => getTimeBlocksByDay(day).length > 0);
-
     return (
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activeDays.map(day => {
+      <div className="grid grid-cols-7 gap-2">
+        {/* Day headers */}
+        {daysOfWeek.map(day => (
+          <div key={day} className="bg-primary text-white px-3 py-2 rounded-t-lg text-center font-bold text-sm">
+            {formatDayName(day)}
+          </div>
+        ))}
+        
+        {/* Day cells */}
+        {daysOfWeek.map(day => {
           const blocks = getTimeBlocksByDay(day);
+          const hasClasses = blocks.length > 0;
+          
           return (
-            <div key={day} className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-              <div className="bg-primary text-white px-4 py-3">
-                <h3 className="font-bold text-lg">{formatDayName(day)}</h3>
-                <p className="text-sm opacity-90">{blocks.length} classes</p>
+            <div 
+              key={day} 
+              className={`border rounded-lg overflow-hidden min-h-[200px] flex flex-col ${
+                hasClasses ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
+              }`}
+            >
+              {/* Day header with class count */}
+              <div className={`px-3 py-2 text-center text-sm font-medium ${
+                hasClasses ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-500'
+              }`}>
+                {blocks.length} {blocks.length === 1 ? 'class' : 'classes'}
               </div>
-              <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
-                {blocks.map(block => (
-                  <div key={block.id} className="border-l-4 border-primary pl-3 py-2 hover:bg-gray-50">
-                    <div className="font-medium text-sm text-gray-900">{block.subject}</div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      {block.startTime} - {block.endTime}
+              
+              {/* Classes list */}
+              <div className="flex-1 p-2 space-y-2 overflow-y-auto">
+                {hasClasses ? (
+                  blocks.map(block => (
+                    <div 
+                      key={block.id} 
+                      className="border-l-4 border-primary pl-2 py-1.5 hover:bg-gray-50 rounded-r transition-colors"
+                    >
+                      <div className="font-semibold text-xs text-gray-900 truncate" title={block.subject}>
+                        {block.subject}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-0.5">
+                        {block.startTime}
+                      </div>
+                      {block.classroom && (
+                        <div className="text-xs text-gray-500 mt-0.5 truncate" title={block.classroom}>
+                          📍 {block.classroom}
+                        </div>
+                      )}
                     </div>
-                    {block.classroom && (
-                      <div className="text-xs text-gray-500 mt-1">📍 {block.classroom}</div>
-                    )}
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400 text-xs">
+                    No classes
                   </div>
-                ))}
+                )}
               </div>
             </div>
           );
@@ -305,7 +342,11 @@ export default function TimetableDetailPage() {
             {/* View Mode Switcher */}
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Weekly Schedule</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {viewMode === 'daily' && 'Daily Schedule'}
+                  {viewMode === 'weekly' && 'Weekly Schedule'}
+                  {viewMode === 'monthly' && 'Monthly Calendar'}
+                </h2>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setViewMode('daily')}

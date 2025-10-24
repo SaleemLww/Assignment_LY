@@ -39,7 +39,7 @@
 
 import { useState, useEffect } from 'react';
 import { Loader2, CheckCircle, XCircle, Clock, Zap } from 'lucide-react';
-import { getJobStatus, getTimetable, type JobStatus, type Timetable } from '../services/api';
+import { getJobStatus, type JobStatus } from '../services/api';
 
 interface ProcessingStatusProps {
   jobId: string;
@@ -49,11 +49,10 @@ interface ProcessingStatusProps {
 
 export default function ProcessingStatus({ jobId, timetableId, onComplete }: ProcessingStatusProps) {
   const [status, setStatus] = useState<JobStatus | null>(null);
-  const [timetable, setTimetable] = useState<Timetable | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
 
     const pollStatus = async () => {
       try {
@@ -61,9 +60,8 @@ export default function ProcessingStatus({ jobId, timetableId, onComplete }: Pro
         setStatus(jobStatus);
 
         if (jobStatus.status === 'completed' && jobStatus.result?.timetableId && timetableId) {
-          // Fetch timetable details
-          const timetableData = await getTimetable(timetableId);
-          setTimetable(timetableData);
+          // Fetch timetable details (if needed in the future)
+          // const timetableData = await getTimetable(timetableId);
           clearInterval(interval);
           onComplete();
         } else if (jobStatus.status === 'failed') {
